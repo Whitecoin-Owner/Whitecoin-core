@@ -1,0 +1,149 @@
+#pragma once
+
+#include <graphene/chain/protocol/base.hpp>
+#include <graphene/crosschain/crosschain_impl.hpp>
+namespace graphene {
+	namespace chain {
+		struct crosschain_record_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION;
+			};
+			crosschain::hd_trx cross_chain_trx;
+			//TODO:refund balance in the situation that channel account tie to formal account
+			candidate_id_type candidate_broadcast;
+			address candidate_address;
+			address deposit_address;
+			asset_id_type asset_id;
+			string asset_symbol;
+			asset fee;
+			address fee_payer()const {
+				return candidate_address;
+			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, candidate_address, 1));
+			}
+		}; 
+		struct crosschain_withdraw_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION;
+			};
+			address withdraw_account;
+			string amount;
+			string asset_symbol;
+			asset fee;
+			asset_id_type asset_id;
+			string crosschain_account;
+			string memo;
+			address fee_payer()const {
+				return withdraw_account;
+			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, withdraw_account, 1));
+			}
+		};
+		struct crosschain_withdraw_without_sign_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION;
+			};
+			//transaction_id_type ccw_trx_id;
+			vector<transaction_id_type> ccw_trx_ids;
+			fc::variant_object withdraw_source_trx;
+			//TODO:refund balance in the situation that channel account tie to formal account
+			candidate_id_type candidate_broadcast;
+			address candidate_address;
+			asset fee;
+			string asset_symbol;
+			asset_id_type asset_id;
+			address fee_payer()const {
+				return candidate_address;
+			}
+			void            validate()const;
+			asset crosschain_fee;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, candidate_address, 1));
+			}
+		};
+		struct crosschain_withdraw_with_sign_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION;
+			};
+			transaction_id_type ccw_trx_id;
+			fc::variant_object withdraw_source_trx;
+			//TODO:refund balance in the situation that channel account tie to formal account
+			wallfacer_member_id_type sign_wallfacer;
+			string asset_symbol;
+			asset fee;
+			address wallfacer_address;
+			string ccw_trx_signature;
+
+			address fee_payer()const {
+				return wallfacer_address;
+			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, wallfacer_address, 1));
+			}
+		};
+		struct crosschain_withdraw_combine_sign_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION;
+			};
+			fc::variant_object cross_chain_trx;
+			vector<transaction_id_type> signed_trx_ids;
+			//TODO:refund balance in the situation that channel account tie to formal account
+			candidate_id_type candidate_broadcast;
+			transaction_id_type withdraw_trx;
+			address candidate_address;
+			string asset_symbol;
+			asset fee;
+			string crosschain_trx_id;
+			address fee_payer()const {
+				return candidate_address;
+			}
+			asset crosschain_fee;
+			optional<asset> get_fee()const { return crosschain_fee; }
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, candidate_address, 1));
+			}
+		};
+
+		struct crosschain_withdraw_result_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION;
+			};
+			crosschain::hd_trx cross_chain_trx;
+			//TODO:refund balance in the situation that channel account tie to formal account
+			candidate_id_type candidate_broadcast;
+			asset fee;
+			address candidate_address;
+			address fee_payer()const {
+				return candidate_address;
+			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, candidate_address, 1));
+			}
+		};
+	}
+}
+FC_REFLECT(graphene::chain::crosschain_record_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::crosschain_record_operation, (fee)(cross_chain_trx)(candidate_broadcast)(asset_id)(asset_symbol)(candidate_address)(deposit_address))
+FC_REFLECT(graphene::chain::crosschain_withdraw_operation::fee_parameters_type,(fee))
+FC_REFLECT(graphene::chain::crosschain_withdraw_operation,(fee)(withdraw_account)(amount)(asset_symbol)(asset_id)(crosschain_account)(memo))
+FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation,(fee)(ccw_trx_ids)(withdraw_source_trx)(candidate_broadcast)(candidate_address)(asset_id)(asset_symbol)(crosschain_fee))
+FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation,(fee)(ccw_trx_id)(asset_symbol)(withdraw_source_trx)(sign_wallfacer)(wallfacer_address)(ccw_trx_signature))
+FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation, (fee)(cross_chain_trx)(crosschain_trx_id)(signed_trx_ids)(candidate_broadcast)(withdraw_trx)(candidate_address)(asset_symbol))
+FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation, (fee)(cross_chain_trx)(candidate_broadcast)(candidate_address))

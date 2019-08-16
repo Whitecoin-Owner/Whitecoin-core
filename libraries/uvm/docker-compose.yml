@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  uvmbuild:
+    build: .
+    image: blocklinkdev/uvmbuild_uvm
+    command: /bin/bash
+    tty: true
+    volumes:
+      - .:/code
+    working_dir: /code
+    ports:
+      - "10023:22"
+      - "5050:5000"
+

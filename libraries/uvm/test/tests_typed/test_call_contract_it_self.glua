@@ -1,0 +1,16 @@
+type Storage = {}
+
+var M = Contract<Storage>()
+
+function M:init()
+	print("init api of test_call_contract_it_self")
+end
+
+function M:start()
+    print("start api of test_call_contract_it_self")
+    pprint("self: ", self)
+    self.init(self)
+    print("end start")
+end
+
+return M

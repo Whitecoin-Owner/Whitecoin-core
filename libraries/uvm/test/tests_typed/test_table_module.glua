@@ -1,0 +1,10 @@
+print("test_table_module begin")
+
+var a = [1, 2, 3, {name='hi'}]
+pprint('a=', a)
+var b = table.concat([1,2,3], ',')
+var c = table.concat(a, ',')
+
+-- TODO: more table module functions' tests
+
+print("test_table_module end")

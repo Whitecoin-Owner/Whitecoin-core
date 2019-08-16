@@ -1,0 +1,13 @@
+*.ldf
+*~
+/.idea
+/*.iml
+/.vs
+/.vscode
+*~
+/logs
+/*.log
+/uvm.exe
+/uvm
+/uvm_single.exe
+/uvm_single

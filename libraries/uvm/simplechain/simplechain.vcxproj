@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{9BAA7F6F-CC2F-4C74-B963-ECDD0A6BD97B}</ProjectGuid>
+    <RootNamespace>simplechain</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vmgc/include;$(SolutionDir)\..\OpenSSL.x64\include;$(SolutionDir)\..\jsondiff-cpp\jsondiff-cpp\include;include;..\include;$(SolutionDir)\..\fc\include;$(SolutionDir)\..\boost_1.55.x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NO_RUN_BOOST_TESTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\OpenSSL.x64\lib;$(SolutionDir)\..\jsondiff-cpp\x64\Debug;$(SolutionDir)\..\libs_release_3;$(SolutionDir)\..\libs_win_x64;$(SolutionDir)\..\libs_debug;$(SolutionDir)\..\boost_1.55.x64\stage\lib;$(SolutionDir)\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>uvm.lib;jsondiff-cpp.lib;libboost_thread-vc120-mt-gd-1_55.lib;libboost_date_time-vc120-mt-gd-1_55.lib;libboost_system-vc120-mt-gd-1_55.lib;libboost_filesystem-vc120-mt-gd-1_55.lib;libboost_program_options-vc120-mt-gd-1_55.lib;libboost_signals-vc120-mt-gd-1_55.lib;libboost_serialization-vc120-mt-gd-1_55.lib;libboost_chrono-vc120-mt-gd-1_55.lib;libboost_unit_test_framework-vc120-mt-gd-1_55.lib;libboost_context-vc120-mt-gd-1_55.lib;libboost_locale-vc120-mt-gd-1_55.lib;libboost_iostreams-vc120-mt-gd-1_55.lib;libboost_coroutine-vc120-mt-gd-1_55.lib;fc_debug.lib;secp256k1_debug.lib;ssleay32MDd.lib;libeay32MDd.lib;WS2_32.Lib;IPHlpApi.Lib;easylzma_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;leveldb.lib;udt_debug.lib;WS2_32.lib;Userenv.lib;Rpcrt4.lib;crypt32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vmgc/include;$(SolutionDir)\..\jsondiff-cpp\jsondiff-cpp\include;$(SolutionDir)\..\OpenSSL.x64\include;include;..\include;$(SolutionDir)\..\fc\include;$(SolutionDir)\..\boost_1.55.x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\vmgc\bin\Release;$(SolutionDir)\..\OpenSSL.x64\lib;$(SolutionDir)\..\libs_win_x64;$(SolutionDir)\..\libs_release_3;$(SolutionDir)\..\jsondiff-cpp\x64\Release;$(SolutionDir)\..\boost_1.55.x64\stage\lib;..\..\uvm\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>uvm.lib;jsondiff-cpp.lib;libboost_thread-vc120-mt-1_55.lib;libboost_date_time-vc120-mt-1_55.lib;libboost_system-vc120-mt-1_55.lib;libboost_filesystem-vc120-mt-1_55.lib;libboost_program_options-vc120-mt-1_55.lib;libboost_signals-vc120-mt-1_55.lib;libboost_serialization-vc120-mt-1_55.lib;libboost_chrono-vc120-mt-1_55.lib;libboost_unit_test_framework-vc120-mt-1_55.lib;libboost_context-vc120-mt-1_55.lib;libboost_locale-vc120-mt-1_55.lib;libboost_iostreams-vc120-mt-1_55.lib;libboost_coroutine-vc120-mt-1_55.lib;fc.lib;secp256k1.lib;ssleay32MD.lib;libeay32MD.lib;WS2_32.Lib;IPHlpApi.Lib;easylzma_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;leveldb.lib;udt.lib;WS2_32.lib;Userenv.lib;Rpcrt4.lib;crypt32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Keccak.cpp" />
+    <ClCompile Include="src\simplechain\address_helper.cpp" />
+    <ClCompile Include="src\simplechain\asset.cpp" />
+    <ClCompile Include="src\simplechain\block.cpp" />
+    <ClCompile Include="src\simplechain\blockchain.cpp" />
+    <ClCompile Include="src\simplechain\chain_rpc.cpp" />
+    <ClCompile Include="src\simplechain\contract.cpp" />
+    <ClCompile Include="src\simplechain\contract_engine_builder.cpp" />
+    <ClCompile Include="src\simplechain\contract_entry.cpp" />
+    <ClCompile Include="src\simplechain\contract_evaluate.cpp" />
+    <ClCompile Include="src\simplechain\contract_helper.cpp" />
+    <ClCompile Include="src\simplechain\contract_object.cpp" />
+    <ClCompile Include="src\simplechain\db.cpp" />
+    <ClCompile Include="src\simplechain\debugger.cpp" />
+    <ClCompile Include="src\simplechain\evaluate_state.cpp" />
+    <ClCompile Include="src\simplechain\native_contract.cpp" />
+    <ClCompile Include="src\simplechain\native_contract_tests.cpp" />
+    <ClCompile Include="src\simplechain\operations_helper.cpp" />
+    <ClCompile Include="src\simplechain\rpcserver.cpp" />
+    <ClCompile Include="src\simplechain\simplechain_program.cpp" />
+    <ClCompile Include="src\simplechain\simplechain_tests.cpp" />
+    <ClCompile Include="src\simplechain\simplechain_uvm_api.cpp" />
+    <ClCompile Include="src\simplechain\storage.cpp" />
+    <ClCompile Include="src\simplechain\transaction.cpp" />
+    <ClCompile Include="src\simplechain\transfer_evaluate.cpp" />
+    <ClCompile Include="src\simplechain\uvm_contract_engine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\client_http.hpp" />
+    <ClInclude Include="include\crypto.hpp" />
+    <ClInclude Include="include\Keccak.hpp" />
+    <ClInclude Include="include\simplechain\native_contract.h" />
+    <ClInclude Include="include\server_http.hpp" />
+    <ClInclude Include="include\simplechain\address_helper.h" />
+    <ClInclude Include="include\simplechain\asset.h" />
+    <ClInclude Include="include\simplechain\block.h" />
+    <ClInclude Include="include\simplechain\blockchain.h" />
+    <ClInclude Include="include\simplechain\chainparams.h" />
+    <ClInclude Include="include\simplechain\chain_rpc.h" />
+    <ClInclude Include="include\simplechain\config.h" />
+    <ClInclude Include="include\simplechain\contract.h" />
+    <ClInclude Include="include\simplechain\contract_engine.h" />
+    <ClInclude Include="include\simplechain\contract_engine_builder.h" />
+    <ClInclude Include="include\simplechain\contract_entry.h" />
+    <ClInclude Include="include\simplechain\contract_evaluate.h" />
+    <ClInclude Include="include\simplechain\contract_helper.h" />
+    <ClInclude Include="include\simplechain\contract_object.h" />
+    <ClInclude Include="include\simplechain\db.h" />
+    <ClInclude Include="include\simplechain\debugger.h" />
+    <ClInclude Include="include\simplechain\evaluate_result.h" />
+    <ClInclude Include="include\simplechain\evaluate_state.h" />
+    <ClInclude Include="include\simplechain\evaluator.h" />
+    <ClInclude Include="include\simplechain\native_contract_tests.h" />
+    <ClInclude Include="include\simplechain\operation.h" />
+    <ClInclude Include="include\simplechain\operations.h" />
+    <ClInclude Include="include\simplechain\operations_helper.h" />
+    <ClInclude Include="include\simplechain\repl.h" />
+    <ClInclude Include="include\simplechain\rpcserver.h" />
+    <ClInclude Include="include\simplechain\service.h" />
+    <ClInclude Include="include\simplechain\simplechain.h" />
+    <ClInclude Include="include\simplechain\simplechain_uvm_api.h" />
+    <ClInclude Include="include\simplechain\storage.h" />
+    <ClInclude Include="include\simplechain\transaction.h" />
+    <ClInclude Include="include\simplechain\transfer_evaluate.h" />
+    <ClInclude Include="include\simplechain\transfer_operation.h" />
+    <ClInclude Include="include\simplechain\uvm_contract_engine.h" />
+    <ClInclude Include="include\status_code.hpp" />
+    <ClInclude Include="include\utility.hpp" />
+    <ClInclude Include="src\client_http.hpp" />
+    <ClInclude Include="src\server_http.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\uvm.vcxproj">
+      <Project>{5bdb377f-63a6-494c-8e0b-e6ec7eaea081}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
