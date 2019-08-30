@@ -193,20 +193,20 @@ void database::pay_workers( share_type& budget )
    }
 }
 
-void database::update_active_candidates()
+void database::update_active_miners()
 { try {
 
 	const chain_property_object& cpo = get_chain_properties();
 
 	const global_property_object& gpo = get_global_properties();
 
-	auto wits = sort_pledge_objects<candidate_index>(gpo.parameters.minimum_pledge_weight_line);
+	auto wits = sort_pledge_objects<miner_index>(gpo.parameters.minimum_pledge_weight_line);
 	modify(gpo, [&](global_property_object& gp) {
 		gp.active_witnesses.clear();
 		gp.active_witnesses.reserve(wits.size());
 		std::transform(wits.begin(), wits.end(),
 			std::inserter(gp.active_witnesses, gp.active_witnesses.end()),
-			[&](const candidate_object& w) {
+			[&](const miner_object& w) {
 			return w.id;
 		});
 	});
@@ -220,18 +220,18 @@ void database::update_active_candidates()
 
    share_type stake_tally = 0; 
 
-   size_t candidate_count = 0;
+   size_t miner_count = 0;
    if( stake_target > 0 )
    {
-      while( (candidate_count < _witness_count_histogram_buffer.size() - 1)
+      while( (miner_count < _witness_count_histogram_buffer.size() - 1)
              && (stake_tally <= stake_target) )
       {
-         stake_tally += _witness_count_histogram_buffer[++candidate_count];
+         stake_tally += _witness_count_histogram_buffer[++miner_count];
       }
    }
 
    const chain_property_object& cpo = get_chain_properties();
-   auto candidates = sort_votable_objects<candidate_index>(std::max(candidate_count*2+1, (size_t)cpo.immutable_parameters.min_candidate_count));
+   auto miners = sort_votable_objects<miner_index>(std::max(miner_count*2+1, (size_t)cpo.immutable_parameters.min_miner_count));
 
    const global_property_object& gpo = get_global_properties();
 
@@ -246,7 +246,7 @@ void database::update_active_candidates()
    //			a.active.weight_threshold = 0;
    //			a.active.clear();
    //
-   //			for (const candidate_object& wit : wits)
+   //			for (const miner_object& wit : wits)
    //			{
    //				weights.emplace(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
    //				total_votes += _vote_tally_buffer[wit.vote_id];
@@ -269,14 +269,14 @@ void database::update_active_candidates()
    //		else
    //		{
    //			vote_counter vc;
-   //			for (const candidate_object& wit : wits)
+   //			for (const miner_object& wit : wits)
    //				vc.add(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
    //			vc.finish(a.active);
    //		}
    //	});
-   for (const candidate_object& wit : all_witnesses)
+   for (const miner_object& wit : all_witnesses)
    {
-	   modify(wit, [&](candidate_object& obj) {
+	   modify(wit, [&](miner_object& obj) {
 		   obj.total_votes = _vote_tally_buffer[wit.vote_id];
 	   });
    }*/
@@ -354,7 +354,7 @@ void database::initialize_budget_record( fc::time_point_sec now, budget_record& 
    const asset_dynamic_data_object& core_dd = core.dynamic_asset_data_id(*this);
    rec.from_initial_reserve = core.reserved(*this);
    rec.from_accumulated_fees = core_dd.accumulated_fees;
-   rec.from_unused_candidate_budget = dpo.candidate_budget;
+   rec.from_unused_miner_budget = dpo.miner_budget;
 
    if(    (dpo.last_budget_time == fc::time_point_sec())
        || (now <= dpo.last_budget_time) )
@@ -375,7 +375,7 @@ void database::initialize_budget_record( fc::time_point_sec now, budget_record& 
    share_type reserve = rec.from_initial_reserve + core_dd.accumulated_fees;
    // Similarly, we consider leftover witness_budget to be burned
    // at the BEGINNING of the maintenance interval.
-   reserve += dpo.candidate_budget;
+   reserve += dpo.miner_budget;
    fc::uint128_t budget_u128 = reserve.value;
    budget_u128 *= uint64_t(dt);
    budget_u128 *= GRAPHENE_CORE_ASSET_CYCLE_RATE;
@@ -428,11 +428,11 @@ void database::process_budget()
       //initialize_budget_record( now, rec );
       //share_type available_funds = rec.total_budget;
 
-      //share_type candidate_budget = gpo.parameters.candidate_pay_per_block.value * blocks_to_maint;
-      //rec.requested_candidate_budget = candidate_budget;
-      //candidate_budget = std::min(candidate_budget, available_funds);
-      //rec.candidate_budget = candidate_budget;
-      //available_funds -= candidate_budget;
+      //share_type miner_budget = gpo.parameters.miner_pay_per_block.value * blocks_to_maint;
+      //rec.requested_miner_budget = miner_budget;
+      //miner_budget = std::min(miner_budget, available_funds);
+      //rec.miner_budget = miner_budget;
+      //available_funds -= miner_budget;
 
       //fc::uint128_t worker_budget_u128 = gpo.parameters.worker_budget_per_day.value;
       //worker_budget_u128 *= uint64_t(time_to_maint);
@@ -451,22 +451,22 @@ void database::process_budget()
       //rec.leftover_worker_funds = leftover_worker_funds;
       //available_funds += leftover_worker_funds;
 
-      //rec.supply_delta = rec.candidate_budget
+      //rec.supply_delta = rec.miner_budget
       //   + rec.worker_budget
       //   - rec.leftover_worker_funds
       //   - rec.from_accumulated_fees
-      //   - rec.from_unused_candidate_budget;
+      //   - rec.from_unused_miner_budget;
 
       //modify(core, [&]( asset_dynamic_data_object& _core )
       //{
       //   _core.current_supply = (_core.current_supply + rec.supply_delta );
 
       //   assert( rec.supply_delta ==
-      //                             candidate_budget
+      //                             miner_budget
       //                           + worker_budget
       //                           - leftover_worker_funds
       //                           - _core.accumulated_fees
-      //                           - dpo.candidate_budget
+      //                           - dpo.miner_budget
       //                          );
       //   _core.accumulated_fees = 0;
       //});
@@ -476,7 +476,7 @@ void database::process_budget()
       //   // Since initial witness_budget was rolled into
       //   // available_funds, we replace it with witness_budget
       //   // instead of adding it.
-      //   _dpo.candidate_budget = candidate_budget;
+      //   _dpo.miner_budget = miner_budget;
       //   _dpo.last_budget_time = now;
       //});
 
@@ -990,7 +990,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
          : d(d), props(gpo)
       {
          d._vote_tally_buffer.resize(props.next_available_vote_id);
-         d._witness_count_histogram_buffer.resize(props.parameters.maximum_candidate_count / 2 + 1);
+         d._witness_count_histogram_buffer.resize(props.parameters.maximum_miner_count / 2 + 1);
          d._wallfacer_count_histogram_buffer.resize(props.parameters.maximum_wallfacer_count / 2 + 1);
          d._total_voting_stake = 0;
       }
@@ -1019,12 +1019,12 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
                   d._vote_tally_buffer[offset] += voting_stake;
             }
 
-            if( opinion_account.options.num_witness <= props.parameters.maximum_candidate_count )
+            if( opinion_account.options.num_witness <= props.parameters.maximum_miner_count )
             {
                uint16_t offset = std::min(size_t(opinion_account.options.num_witness/2),
                                           d._witness_count_histogram_buffer.size() - 1);
-               // votes for a number greater than maximum_candidate_count
-               // are turned into votes for maximum_candidate_count.
+               // votes for a number greater than maximum_miner_count
+               // are turned into votes for maximum_miner_count.
                //
                // in particular, this takes care of the case where a
                // member was voting for a high number, then the
@@ -1074,7 +1074,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
                 c(_vote_tally_buffer);
 
    update_top_n_authorities(*this);
-   update_active_candidates();
+   update_active_miners();
    update_active_committee_members();
    update_worker_votes();
 

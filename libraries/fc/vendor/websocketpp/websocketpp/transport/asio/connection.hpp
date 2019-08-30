@@ -340,7 +340,7 @@ public:
      * The timer pointer is included to ensure the timer isn't destroyed until
      * after it has expired.
      *
-     * TODO: candidate for protected status
+     * TODO: miner for protected status
      *
      * @param post_timer Pointer to the timer in question
      * @param callback The function to call back

@@ -73,13 +73,13 @@ namespace graphene { namespace chain {
 	   void_result do_apply(const committee_member_execute_coin_destory_operation& o);
    };
 
-   class candidate_referendum_wallfacer_evaluator :public evaluator<candidate_referendum_wallfacer_evaluator>
+   class miner_referendum_wallfacer_evaluator :public evaluator<miner_referendum_wallfacer_evaluator>
    {
    public:
-	   typedef candidate_referendum_wallfacer_operation operation_type;
+	   typedef miner_referendum_wallfacer_operation operation_type;
 
-	   void_result do_evaluate(const candidate_referendum_wallfacer_operation& o);
-	   void_result do_apply(const candidate_referendum_wallfacer_operation& o);
+	   void_result do_evaluate(const miner_referendum_wallfacer_operation& o);
+	   void_result do_apply(const miner_referendum_wallfacer_operation& o);
 	   bool if_evluate();
 	   referendum_id_type _id;
    };

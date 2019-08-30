@@ -30,11 +30,11 @@
 #include <fc/thread/future.hpp>
 #include <fc/container/flat.hpp>
 
-namespace graphene { namespace debug_candidate_plugin {
+namespace graphene { namespace debug_miner_plugin {
 
-class debug_candidate_plugin : public graphene::app::plugin {
+class debug_miner_plugin : public graphene::app::plugin {
 public:
-   ~debug_candidate_plugin();
+   ~debug_miner_plugin();
 
    std::string plugin_name()const override;
 
@@ -66,4 +66,4 @@ private:
    boost::signals2::scoped_connection _removed_objects_conn;
 };
 
-} } //graphene::debug_candidate_plugin
+} } //graphene::debug_miner_plugin

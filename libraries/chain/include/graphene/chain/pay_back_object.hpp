@@ -14,7 +14,7 @@ namespace graphene {
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = pay_back_object_type;
 			address pay_back_owner;
-			candidate_id_type candidate_id;
+			miner_id_type miner_id;
 			asset one_owner_balance;
 			//map<std::string, asset> owner_balance;
 		};
@@ -38,7 +38,7 @@ namespace graphene {
 
 
 		struct by_payback_address;
-		struct by_payback_address_candidate;
+		struct by_payback_address_miner;
 		using pay_back_multi_index_type = multi_index_container <
 			pay_back_object,
 			indexed_by <
@@ -50,10 +50,10 @@ namespace graphene {
 			member<pay_back_object, address, &pay_back_object::pay_back_owner>
 			>,
 			ordered_unique<
-			tag<by_payback_address_candidate>,
+			tag<by_payback_address_miner>,
 			composite_key<pay_back_object,
 			member<pay_back_object, address, &pay_back_object::pay_back_owner>,
-			member<pay_back_object, candidate_id_type, &pay_back_object::candidate_id>
+			member<pay_back_object, miner_id_type, &pay_back_object::miner_id>
 			>
 			>
 			>
@@ -73,7 +73,7 @@ namespace graphene {
 }
 FC_REFLECT_DERIVED(graphene::chain::pay_back_object, (graphene::db::object),
 (pay_back_owner)
-(candidate_id)
+(miner_id)
 (one_owner_balance)
 )
 FC_REFLECT_DERIVED(graphene::chain::bonus_object, (graphene::db::object),

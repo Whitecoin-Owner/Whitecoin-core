@@ -88,13 +88,13 @@ namespace detail {
 	  std::cout << "xwc" << utilities::key_to_wif(test_nathan_key) << std::endl;
       genesis_state_type initial_state;
       initial_state.initial_parameters.current_fees = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
-      initial_state.initial_active_candidates = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
+      initial_state.initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
       initial_state.initial_timestamp = time_point_sec(time_point::now().sec_since_epoch() /
             initial_state.initial_parameters.block_interval *
             initial_state.initial_parameters.block_interval);
-      for( uint64_t i = 0; i < initial_state.initial_active_candidates; ++i )
+      for( uint64_t i = 0; i < initial_state.initial_active_miners; ++i )
       {
-         auto name = "candidate"+fc::to_string(i);
+         auto name = "miner"+fc::to_string(i);
 		 //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 		 auto name_key = fc::ecc::private_key::generate();
 		 std::cout << name << " " <<std::string(public_key_type(name_key.get_public_key())) << "," << utilities::key_to_wif(name_key) << std::endl;
@@ -104,7 +104,7 @@ namespace detail {
 			                                         name_key.get_public_key(),
                                                      true);
          
-         initial_state.initial_candidate_candidates.push_back({name, name_key.get_public_key()});
+         initial_state.initial_miner_miners.push_back({name, name_key.get_public_key()});
       }
 
 	  for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MAX_GUARDS; i++)
@@ -123,12 +123,12 @@ namespace detail {
 		  {
 			  wallfacer.owner_name = name;
 			  wallfacer.type = PERMANENT;
-			  initial_state.initial_wallfacer_candidates.push_back(wallfacer);
+			  initial_state.initial_wallfacer_miners.push_back(wallfacer);
 		  }
 		  else {
 			  wallfacer.owner_name = name;
 			  wallfacer.type = EXTERNAL;
-			  initial_state.initial_wallfacer_candidates.push_back(wallfacer);
+			  initial_state.initial_wallfacer_miners.push_back(wallfacer);
 		  }
 		  
 
@@ -340,10 +340,10 @@ namespace detail {
 
       void set_dbg_init_key( genesis_state_type& genesis, const std::string& init_key )
       {
-         flat_set< std::string > initial_candidate_names;
+         flat_set< std::string > initial_miner_names;
          public_key_type init_pubkey( init_key );
-         for( uint64_t i=0; i<genesis.initial_active_candidates; i++ )
-            genesis.initial_candidate_candidates[i].block_signing_key = init_pubkey;
+         for( uint64_t i=0; i<genesis.initial_active_miners; i++ )
+            genesis.initial_miner_miners[i].block_signing_key = init_pubkey;
          return;
       }
 	  void stop_block_processing()
@@ -462,10 +462,10 @@ namespace detail {
                if( _options->count("dbg-init-key") )
                {
                   std::string init_key = _options->at( "dbg-init-key" ).as<string>();
-                  FC_ASSERT( genesis.initial_candidate_candidates.size() >= genesis.initial_active_candidates );
+                  FC_ASSERT( genesis.initial_miner_miners.size() >= genesis.initial_active_miners );
                   set_dbg_init_key( genesis, init_key );
                   modified_genesis = true;
-                  std::cerr << "Set init candidate key to " << init_key << "\n";
+                  std::cerr << "Set init miner key to " << init_key << "\n";
                }
                if( modified_genesis )
                {
@@ -620,7 +620,7 @@ namespace detail {
 			wild_access.allowed_apis.push_back("crosschain_api");
 			wild_access.allowed_apis.push_back("transaction_api");
             wild_access.allowed_apis.push_back("network_node_api");
-            wild_access.allowed_apis.push_back("candidate_api");
+            wild_access.allowed_apis.push_back("miner_api");
             wild_access.allowed_apis.push_back("localnode_api");
             _apiaccess.permission_map["*"] = wild_access;
          }
@@ -702,14 +702,14 @@ namespace detail {
 		  }
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
-            const auto& candidate = blk_msg.block.candidate(*_chain_db);
-            const auto& candidate_account = candidate.candidate_account(*_chain_db);
+            const auto& miner = blk_msg.block.miner(*_chain_db);
+            const auto& miner_account = miner.miner_account(*_chain_db);
             auto last_irr = _chain_db->get_dynamic_global_properties().last_irreversible_block_num;
             ilog("Got block: #${n} time: ${t} latency: ${l} ms from: ${w}  irreversible: ${i} (-${d})",
                  ("t",blk_msg.block.timestamp)
                  ("n", blk_msg.block.block_num())
                  ("l", (latency.count()/1000))
-                 ("w",candidate_account.name)
+                 ("w",miner_account.name)
                  ("i",last_irr)("d",blk_msg.block.block_num()-last_irr) );
          }
          FC_ASSERT( (latency.count()/1000) > -5000, "Rejecting block with timestamp in the future" );
@@ -1139,7 +1139,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("server-pem,p", bpo::value<string>()->implicit_value("server.pem"), "The TLS certificate file for this server")
          ("server-pem-password,P", bpo::value<string>()->implicit_value(""), "Password for this certificate")
          ("genesis-json", bpo::value<boost::filesystem::path>(), "File to read Genesis State from")
-         ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init candidatees, overrides genesis file")
+         ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init mineres, overrides genesis file")
          ("api-access", bpo::value<boost::filesystem::path>(), "JSON file specifying API permissions")
 		 ("min_gas_price", bpo::value<int>(), "Miner in this node would not pack contract trx which gas price to low")
 	     ("midware_servers", bpo::value<string>()->composing(), "")

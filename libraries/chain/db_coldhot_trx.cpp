@@ -387,7 +387,7 @@ namespace graphene {
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_trx_id)(current_trx_id))
 		}
-		void database::create_coldhot_transfer_trx(candidate_id_type candidate, fc::ecc::private_key pk) {
+		void database::create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk) {
 			//need to check if there are crosschain trx
 			auto start = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().lower_bound(withdraw_without_sign_trx_create);
 			auto end = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().lower_bound(withdraw_transaction_confirm);
@@ -544,12 +544,12 @@ namespace graphene {
 					}
 					trx_op.withdraw_account_count = withdraw_account_count;
 					trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
-					trx_op.candidate_broadcast = candidate;
+					trx_op.miner_broadcast = miner;
 					trx_op.asset_symbol = coldhot_op.asset_symbol;
 					trx_op.asset_id = coldhot_op.asset_id;
-					optional<candidate_object> candidate_iter = get(candidate);
-					optional<account_object> account_iter = get(candidate_iter->candidate_account);
-					trx_op.candidate_address = account_iter->addr;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
 
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;
@@ -569,7 +569,7 @@ namespace graphene {
 				}
 			}
 		}
-		void database::combine_coldhot_sign_transaction(candidate_id_type candidate, fc::ecc::private_key pk) {
+		void database::combine_coldhot_sign_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			auto coldhot_sign_range = get_index_type<coldhot_transfer_index>().indices().get<by_optype>().equal_range(uint64_t(operation::tag<coldhot_transfer_with_sign_operation>::value));
 			map<transaction_id_type, set<transaction_id_type>> uncombine_trxs;
 			for (auto coldhot_sign_tx : boost::make_iterator_range(coldhot_sign_range.first, coldhot_sign_range.second)){
@@ -692,10 +692,10 @@ namespace graphene {
 					trx_op.asset_symbol = coldhot_op.asset_symbol;
 					vector<transaction_id_type> vector_ids(trxs.second.begin(), trxs.second.end());
 					trx_op.signed_trx_ids.swap(vector_ids);
-					trx_op.candidate_broadcast = candidate;
-					optional<candidate_object> candidate_iter = get(candidate);
-					optional<account_object> account_iter = get(candidate_iter->candidate_account);
-					trx_op.candidate_address = account_iter->addr;
+					trx_op.miner_broadcast = miner;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
 					trx_op.coldhot_transfer_trx_id = relate_tx_iter->current_id;
 					crosschain_trx hdl_trx;
 					if (coldhot_op.asset_symbol == "USDT")

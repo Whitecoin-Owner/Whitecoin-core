@@ -39,9 +39,9 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    const auto& global_parameters = d.get_global_properties().parameters;
    //proposer has to be a formal wallfacer
    auto  proposer = o.proposer;
-   auto& candidate_idx = d.get_index_type<candidate_index>().indices().get<by_account>();
-   auto iter = candidate_idx.find(proposer);
-   FC_ASSERT(iter != candidate_idx.end(), "referendum proposer must be a candidate.");
+   auto& miner_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+   auto iter = miner_idx.find(proposer);
+   FC_ASSERT(iter != miner_idx.end(), "referendum proposer must be a miner.");
    _pledge = iter->pledge_weight;
    const auto& dynamic_obj = d.get_dynamic_global_properties();
    FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && (d.head_block_time() < dynamic_obj.next_vote_time)));
@@ -55,7 +55,7 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    }
    for (const auto& op : o.proposed_ops)
    {
-	   GRAPHENE_ASSERT(op.op.which() == operation::tag<candidate_referendum_wallfacer_operation>::value, proposal_create_invalid_proposals,"invalid referendum");
+	   GRAPHENE_ASSERT(op.op.which() == operation::tag<miner_referendum_wallfacer_operation>::value, proposal_create_invalid_proposals,"invalid referendum");
    }
    for (const op_wrapper& op : o.proposed_ops)
    {
@@ -85,14 +85,14 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 	   referendum.proposed_transaction = _proposed_trx;
 	   referendum.expiration_time = d.head_block_time() + fc::seconds(XWC_REFERENDUM_PACKING_PERIOD + XWC_REFERENDUM_VOTING_PERIOD);
        referendum.proposer = o.proposer;
-       //proposal should only be approved by wallfacer or candidates
+       //proposal should only be approved by wallfacer or miners
 	   const auto& acc = d.get_index_type<account_index>().indices().get<by_id>();
-	   const auto& iter = d.get_index_type<candidate_index>().indices().get<by_account>();
-	   std::for_each(iter.begin(), iter.end(), [&](const candidate_object& a)
+	   const auto& iter = d.get_index_type<miner_index>().indices().get<by_account>();
+	   std::for_each(iter.begin(), iter.end(), [&](const miner_object& a)
 	   {
-		   referendum.required_account_approvals.insert(acc.find(a.candidate_account)->addr);
+		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
-	   referendum.candidate_pledge = _pledge;
+	   referendum.miner_pledge = _pledge;
 	   referendum.pledge = o.fee.amount ;
    });
    return ref_obj.id;
@@ -125,13 +125,13 @@ void_result referendum_update_evaluator::do_apply(const referendum_update_operat
 		d.modify(*_referendum, [&o, &d](referendum_object& p) {
 			//FC_ASSERT(p.required_account_approvals(););
 
-			auto is_candidate_or_wallfacer = [&](const address& addr)->bool {
+			auto is_miner_or_wallfacer = [&](const address& addr)->bool {
 				return p.required_account_approvals.find(addr) != p.required_account_approvals.end();
 			};
 
 			for (const auto& addr : o.key_approvals_to_add)
 			{
-				if (!is_candidate_or_wallfacer(addr))
+				if (!is_miner_or_wallfacer(addr))
 					continue;
 				p.approved_key_approvals.insert(addr);
 				p.disapproved_key_approvals.erase(addr);
@@ -139,7 +139,7 @@ void_result referendum_update_evaluator::do_apply(const referendum_update_operat
 
 			for (const auto& addr : o.key_approvals_to_remove)
 			{
-				if (!is_candidate_or_wallfacer(addr))
+				if (!is_miner_or_wallfacer(addr))
 					continue;
 				p.disapproved_key_approvals.insert(addr);
 				p.approved_key_approvals.erase(addr);
@@ -203,10 +203,10 @@ void_result vote_create_evaluator::do_evaluate(const vote_create_operation& o)
 		auto  proposer = o.fee_payer();
 		auto& acct_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		auto iter_acc = acct_idx.find(proposer);
-		FC_ASSERT(iter_acc != acct_idx.end(), "vote proposer must be a candidate.");
-		auto& candidate_idx = d.get_index_type<candidate_index>().indices().get<by_account>();
-		auto iter = candidate_idx.find(iter_acc->get_id());
-		FC_ASSERT(iter != candidate_idx.end(), "vote proposer must be a candidate.");
+		FC_ASSERT(iter_acc != acct_idx.end(), "vote proposer must be a miner.");
+		auto& miner_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+		auto iter = miner_idx.find(iter_acc->get_id());
+		FC_ASSERT(iter != miner_idx.end(), "vote proposer must be a miner.");
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
@@ -249,10 +249,10 @@ void_result vote_update_evaluator::do_evaluate(const vote_update_operation& o)
 		auto  proposer = o.fee_payer();
 		auto& acct_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		auto iter_acc = acct_idx.find(proposer);
-		FC_ASSERT(iter_acc != acct_idx.end(), "vote proposer must be a candidate.");
-		auto& candidate_idx = d.get_index_type<candidate_index>().indices().get<by_account>();
-		auto iter = candidate_idx.find(iter_acc->get_id());
-		FC_ASSERT(iter != candidate_idx.end(), "vote proposer must be a candidate.");
+		FC_ASSERT(iter_acc != acct_idx.end(), "vote proposer must be a miner.");
+		auto& miner_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+		auto iter = miner_idx.find(iter_acc->get_id());
+		FC_ASSERT(iter != miner_idx.end(), "vote proposer must be a miner.");
 		FC_ASSERT(vote_obj->finished == false, "the vote has been finished.");
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))

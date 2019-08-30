@@ -479,27 +479,27 @@ class database_api
        *
        * This function has semantics identical to @ref get_objects
        */
-      vector<optional<candidate_object>> get_candidates(const vector<candidate_id_type>& witness_ids)const;
+      vector<optional<miner_object>> get_miners(const vector<miner_id_type>& witness_ids)const;
 
       /**
        * @brief Get the witness owned by a given account
        * @param account The ID of the account whose witness should be retrieved
        * @return The witness object, or null if the account does not have a witness
        */
-      fc::optional<candidate_object> get_candidate_by_account(account_id_type account)const;
-      candidate_object get_candidate(const string& owner_account) const;
+      fc::optional<miner_object> get_miner_by_account(account_id_type account)const;
+      miner_object get_miner(const string& owner_account) const;
       /**
        * @brief Get names and IDs for registered witnesses
        * @param lower_bound_name Lower bound of the first name to return
        * @param limit Maximum number of results to return -- must not exceed 1000
        * @return Map of witness names to corresponding IDs
        */
-      map<string, candidate_id_type> lookup_candidate_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, miner_id_type> lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const;
 
       /**
        * @brief Get the total number of witnesses registered with the blockchain
        */
-      uint64_t get_candidate_count()const;
+      uint64_t get_miner_count()const;
 
       ///////////////////////
       // Committee members //
@@ -547,7 +547,7 @@ class database_api
       /**
        *  @brief Given a set of votes, return the objects they are voting for.
        *
-       *  This will be a mixture of wallfacer_member_object, candidate_objects, and worker_objects
+       *  This will be a mixture of wallfacer_member_object, miner_objects, and worker_objects
        *
        *  The results will be in the same order as the votes.  Null will be returned for
        *  any vote ids that are not found.
@@ -622,12 +622,12 @@ class database_api
 	  //Lock balance
 	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
 	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
-	  vector<lockbalance_object> get_candidate_lock_balance(const candidate_id_type& candidate) const;
+	  vector<lockbalance_object> get_miner_lock_balance(const miner_id_type& miner) const;
 
 	  vector<wallfacer_lock_balance_object> get_wallfacer_lock_balance(const wallfacer_member_id_type& id)const;
 	  vector<wallfacer_lock_balance_object> get_wallfacer_asset_lock_balance(const asset_id_type& id)const;
       variant_object decoderawtransaction(const string& raw_trx, const string& symbol) const;
-	  share_type get_candidate_pay_per_block(uint32_t block_num) const;
+	  share_type get_miner_pay_per_block(uint32_t block_num) const;
 	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account,const transaction_id_type& id)const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
 	  vector<optional<crosschain_trx_object>> get_crosschain_transaction_by_blocknum(const string& symbol, const string& account, const uint32_t& start_block_num,const uint32_t& stop_block_num, const transaction_stata& crosschain_trx_state)const;
@@ -673,9 +673,9 @@ class database_api
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num) const;
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0)const ;
 	  optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
-	  map<account_id_type, vector<asset>> get_candidate_lockbalance_info(const candidate_id_type& id) const;
+	  map<account_id_type, vector<asset>> get_miner_lockbalance_info(const miner_id_type& id) const;
 	  optional<contract_storage_object> get_contract_storage(const address& contract_address, const string& storage_name)const ;
-	  vector<candidate_id_type> list_scheduled_candidates() const;
+	  vector<miner_id_type> list_scheduled_miners() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 	  fc::ntp_info get_ntp_info() const;
 	  void ntp_update_time() const;
@@ -763,11 +763,11 @@ FC_API(graphene::app::database_api,
 	(get_trade_history)
 
 	// Witnesses
-	(get_candidates)
-	(get_candidate_by_account)
-	(lookup_candidate_accounts)
-	(get_candidate_count)
-    (get_candidate)
+	(get_miners)
+	(get_miner_by_account)
+	(lookup_miner_accounts)
+	(get_miner_count)
+    (get_miner)
 	// Committee members
 	(get_wallfacer_members)
     (get_wallfacer_member)
@@ -805,7 +805,7 @@ FC_API(graphene::app::database_api,
 	// Lock balance
 	(get_account_lock_balance)
 	(get_asset_lock_balance)
-	(get_candidate_lock_balance)
+	(get_miner_lock_balance)
 
 
 
@@ -828,7 +828,7 @@ FC_API(graphene::app::database_api,
 	(get_pay_back_balances)
     (get_address_pay_back_balance)
 	(get_bonus_balances)
-	(get_candidate_pay_per_block)
+	(get_miner_pay_per_block)
     //contract
     (get_contract_object)
 	(get_contract_object_by_name)
@@ -852,8 +852,8 @@ FC_API(graphene::app::database_api,
     (get_contract_addresses_by_owner)
 	(get_contract_history)
 	(get_current_multisig_account)
-	(get_candidate_lockbalance_info)
-	(list_scheduled_candidates)
+	(get_miner_lockbalance_info)
+	(list_scheduled_miners)
 	(get_referendum_object)
 	(get_eths_multi_create_account_trx)
 	(invoke_contract_offline)

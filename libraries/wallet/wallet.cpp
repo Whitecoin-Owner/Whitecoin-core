@@ -262,10 +262,10 @@ private:
    }
    // after a witness registration succeeds, this saves the private key in the wallet permanently
    //
-   void claim_registered_candidate(const std::string& witness_name)
+   void claim_registered_miner(const std::string& witness_name)
    {
-      auto iter = _wallet.pending_candidate_registrations.find(witness_name);
-      FC_ASSERT(iter != _wallet.pending_candidate_registrations.end());
+      auto iter = _wallet.pending_miner_registrations.find(witness_name);
+      FC_ASSERT(iter != _wallet.pending_miner_registrations.end());
       std::string wif_key = iter->second;
 
       // get the list key id this key is registered with in the chain
@@ -275,7 +275,7 @@ private:
       auto pub_key = witness_private_key->get_public_key();
       //_keys[pub_key] = wif_key;
 	  FC_ASSERT(_keys.count(pub_key));
-      _wallet.pending_candidate_registrations.erase(iter);
+      _wallet.pending_miner_registrations.erase(iter);
    }
 
    fc::mutex _resync_mutex;
@@ -305,10 +305,10 @@ private:
                claim_registered_account(*optional_account);
       }
 
-      if (!_wallet.pending_candidate_registrations.empty())
+      if (!_wallet.pending_miner_registrations.empty())
       {
          // make a vector of the owner accounts for witnesses pending registration
-         std::vector<string> pending_witness_names = boost::copy_range<std::vector<string> >(boost::adaptors::keys(_wallet.pending_candidate_registrations));
+         std::vector<string> pending_witness_names = boost::copy_range<std::vector<string> >(boost::adaptors::keys(_wallet.pending_miner_registrations));
 
          // look up the owners on the blockchain
          std::vector<fc::optional<graphene::chain::account_object>> owner_account_objects = _remote_db->lookup_account_names(pending_witness_names);
@@ -317,9 +317,9 @@ private:
          for( const fc::optional<graphene::chain::account_object>& optional_account : owner_account_objects )
             if (optional_account)
             {
-               fc::optional<candidate_object> witness_obj = _remote_db->get_candidate_by_account(optional_account->id);
+               fc::optional<miner_object> witness_obj = _remote_db->get_miner_by_account(optional_account->id);
                if (witness_obj)
-				   claim_registered_candidate(optional_account->name);
+				   claim_registered_miner(optional_account->name);
             }
       }
 
@@ -679,9 +679,9 @@ public:
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
 	  
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
-	  result["round_participation"] =100.0 * dynamic_props.round_produced_candidates.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);
-	  auto scheduled_candidates = _remote_db->list_scheduled_candidates();
-	  result["scheduled_candidates"] = scheduled_candidates;
+	  result["round_participation"] =100.0 * dynamic_props.round_produced_miners.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);
+	  auto scheduled_miners = _remote_db->list_scheduled_miners();
+	  result["scheduled_miners"] = scheduled_miners;
       //result["active_wallfacer_members"] = global_props.active_committee_members;
       return result;
    }
@@ -1434,7 +1434,7 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		   get_candidate(caster);
+		   get_miner(caster);
 		   const auto& acc = get_account(caster);
 		   vote_update_operation op;
 		   op.fee_paying_account = acc.addr;
@@ -1454,7 +1454,7 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		   get_candidate(proposer);
+		   get_miner(proposer);
 		   const auto& acc = get_account(proposer);
 		   vote_create_operation op;
 		   op.fee_paying_account = acc.addr;
@@ -1550,7 +1550,7 @@ public:
    {
 	   vector<fc::variant> result;
 	   try {
-		   get_candidate(account);
+		   get_miner(account);
 		   const auto& acc = get_account(account);
 		   vector<vote_object> votes = _remote_db->get_votes_by_addr(acc.addr);
 		   for (const auto& vote : votes)
@@ -1566,7 +1566,7 @@ public:
 			   for (const auto& vote_result : vote_results)
 			   {
 				   const auto& acc = get_account_by_addr(vote_result.voter);
-				   const auto& citi = get_candidate(acc->name);
+				   const auto& citi = get_miner(acc->name);
 				   temp_voters[vote_result.index].push_back(vote_result.voter);
 				   temp[vote_result.index] += citi.pledge_weight;
 			   }
@@ -3340,16 +3340,16 @@ public:
 		   return sign_transaction(tx,broadcast);
 	   }FC_CAPTURE_AND_RETHROW((referendum_id)(amount)(broadcast))
    }
-   full_transaction set_candidate_pledge_pay_back_rate(const string& candidate, int pledge_pay_back_rate,bool broadcast)
+   full_transaction set_miner_pledge_pay_back_rate(const string& miner, int pledge_pay_back_rate,bool broadcast)
    {
 	   try {
 
 		   FC_ASSERT(!is_locked());
 		   FC_ASSERT(pledge_pay_back_rate >= 0 && pledge_pay_back_rate <= GRAPHENE_MINER_PAY_BACK_RATIO, "pledge_pay_back_rate must between 0 50");
-		   auto ctz = get_candidate(candidate);
-		   auto acct=get_account(candidate);
-		   FC_ASSERT(acct.id == ctz.candidate_account, "Invalid candidate:" + candidate);
-		   acct.options.candidate_pledge_pay_back = pledge_pay_back_rate;
+		   auto ctz = get_miner(miner);
+		   auto acct=get_account(miner);
+		   FC_ASSERT(acct.id == ctz.miner_account, "Invalid miner:" + miner);
+		   acct.options.miner_pledge_pay_back = pledge_pay_back_rate;
 		   account_update_operation op;
 		   op.addr = acct.addr;
 		   op.account = acct.id;
@@ -3366,15 +3366,15 @@ public:
 		   //std::cout << fc::json::to_pretty_string(_wallet.pending_account_updation) << std::endl;
 		   return res;
 
-	   }FC_CAPTURE_AND_RETHROW((candidate)(pledge_pay_back_rate))
+	   }FC_CAPTURE_AND_RETHROW((miner)(pledge_pay_back_rate))
    }
-   full_transaction candidate_referendum_for_wallfacer(const string& candidate,const string& amount ,const map<account_id_type,account_id_type>& replacement,bool broadcast)
+   full_transaction miner_referendum_for_wallfacer(const string& miner,const string& amount ,const map<account_id_type,account_id_type>& replacement,bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		   get_candidate(candidate);
+		   get_miner(miner);
 		   const chain_parameters& current_params = get_global_properties().parameters;
-		   candidate_referendum_wallfacer_operation op;
+		   miner_referendum_wallfacer_operation op;
 		   for (const auto& iter : replacement)
 		   {
 			  get_account(iter.first);
@@ -3384,8 +3384,8 @@ public:
 		   op.replace_queue = replacement;
 		   signed_transaction tx;
 		   referendum_create_operation prop_op;
-		   prop_op.proposer = get_account(candidate).get_id();
-		   prop_op.fee_paying_account = get_account(candidate).addr;
+		   prop_op.proposer = get_account(miner).get_id();
+		   prop_op.fee_paying_account = get_account(miner).addr;
 		   prop_op.proposed_ops.emplace_back(op);
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.front().op);
 		   //prop_op.review_period_seconds = 0;
@@ -3395,7 +3395,7 @@ public:
 		   //set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
 		   return sign_transaction(tx, broadcast);
-	   }FC_CAPTURE_AND_RETHROW((candidate)(replacement)(broadcast))
+	   }FC_CAPTURE_AND_RETHROW((miner)(replacement)(broadcast))
    }
 
    full_transaction wallfacer_appointed_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time,bool broadcast)
@@ -3763,28 +3763,28 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(pubs)(required)(broadcast))
    }
 
-   map<account_id_type, vector<asset>> get_candidate_lockbalance_info(const string& account)
+   map<account_id_type, vector<asset>> get_miner_lockbalance_info(const string& account)
    {
-	   auto obj = get_candidate(account);
-	   return _remote_db->get_candidate_lockbalance_info(obj.id);
+	   auto obj = get_miner(account);
+	   return _remote_db->get_miner_lockbalance_info(obj.id);
    }
    vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state) {
 	   eth_multi_account_trx_state temp = eth_multi_account_trx_state(mul_acc_tx_state);
 	   return _remote_db->get_eths_multi_create_account_trx(temp,transaction_id_type());
    }
-   candidate_object get_candidate(string owner_account)
+   miner_object get_miner(string owner_account)
    {
       try
       {
-		 candidate_object obj;
-         fc::optional<candidate_id_type> candidate_id = maybe_id<candidate_id_type>(owner_account);
-         if (candidate_id)
+		 miner_object obj;
+         fc::optional<miner_id_type> miner_id = maybe_id<miner_id_type>(owner_account);
+         if (miner_id)
          {
-            std::vector<candidate_id_type> ids_to_get;
-            ids_to_get.push_back(*candidate_id);
-            std::vector<fc::optional<candidate_object>> candidate_objects = _remote_db->get_candidates(ids_to_get);
-            if (candidate_objects.front())
-				obj= *candidate_objects.front();
+            std::vector<miner_id_type> ids_to_get;
+            ids_to_get.push_back(*miner_id);
+            std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(ids_to_get);
+            if (miner_objects.front())
+				obj= *miner_objects.front();
 			else
 			{
 				FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
@@ -3797,7 +3797,7 @@ public:
             try
             {
                account_id_type owner_account_id = get_account_id(owner_account);
-               fc::optional<candidate_object> witness = _remote_db->get_candidate_by_account(owner_account_id);
+               fc::optional<miner_object> witness = _remote_db->get_miner_by_account(owner_account_id);
                if (witness)
 				   obj= *witness;
                else
@@ -3847,39 +3847,39 @@ public:
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
-   flat_set<candidate_id_type> list_active_candidates()
+   flat_set<miner_id_type> list_active_miners()
    {
 	   auto pro = get_global_properties();
 	   return pro.active_witnesses;
    }
 
 
-   full_transaction create_candidate(string owner_account,
+   full_transaction create_miner(string owner_account,
                                      string url,
                                      bool broadcast /* = false */)
    { try {
 	   FC_ASSERT(!is_locked());
-      account_object candidate_account = get_account(owner_account);
-      fc::ecc::private_key active_private_key = get_private_key_for_account(candidate_account);
+      account_object miner_account = get_account(owner_account);
+      fc::ecc::private_key active_private_key = get_private_key_for_account(miner_account);
       //int witness_key_index = find_first_unused_derived_key_index(active_private_key);
       //fc::ecc::private_key witness_private_key = derive_private_key(key_to_wif(active_private_key), witness_key_index);
-      graphene::chain::public_key_type candidate_public_key = active_private_key.get_public_key();
+      graphene::chain::public_key_type miner_public_key = active_private_key.get_public_key();
 
-      candidate_create_operation candidate_create_op;
-	  candidate_create_op.candidate_account = candidate_account.id;
-	  candidate_create_op.candidate_address = candidate_account.addr;
-	  candidate_create_op.block_signing_key = candidate_public_key;
-	  candidate_create_op.url = url;
-	  candidate_create_op.guarantee_id = get_guarantee_id();
-      if (_remote_db->get_candidate_by_account(candidate_create_op.candidate_account))
-         FC_THROW("Account ${owner_account} is already a candidate", ("owner_account", owner_account));
+      miner_create_operation miner_create_op;
+	  miner_create_op.miner_account = miner_account.id;
+	  miner_create_op.miner_address = miner_account.addr;
+	  miner_create_op.block_signing_key = miner_public_key;
+	  miner_create_op.url = url;
+	  miner_create_op.guarantee_id = get_guarantee_id();
+      if (_remote_db->get_miner_by_account(miner_create_op.miner_account))
+         FC_THROW("Account ${owner_account} is already a miner", ("owner_account", owner_account));
 
       signed_transaction tx;
-      tx.operations.push_back(candidate_create_op);
+      tx.operations.push_back(miner_create_op);
       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
       tx.validate();
 
-      _wallet.pending_candidate_registrations[owner_account] = key_to_wif(active_private_key);
+      _wallet.pending_miner_registrations[owner_account] = key_to_wif(active_private_key);
 
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
@@ -3889,8 +3889,8 @@ public:
                                      string block_signing_key,
                                      bool broadcast /* = false */)
    { try {
-      candidate_object witness = get_candidate(witness_name);
-      account_object witness_account = get_account( witness.candidate_account );
+      miner_object witness = get_miner(witness_name);
+      account_object witness_account = get_account( witness.miner_account );
       fc::ecc::private_key active_private_key = get_private_key_for_account(witness_account);
 
       witness_update_operation witness_update_op;
@@ -4063,7 +4063,7 @@ public:
       fc::optional<vesting_balance_id_type> vbid = maybe_id<vesting_balance_id_type>(witness_name);
       if( !vbid )
       {
-         candidate_object wit = get_candidate( witness_name );
+         miner_object wit = get_miner( witness_name );
          FC_ASSERT( wit.pay_vb );
          vbid = wit.pay_vb;
       }
@@ -5031,7 +5031,7 @@ public:
    { try {
       account_object voting_account_object = get_account(voting_account);
       account_id_type witness_owner_account_id = get_account_id(witness);
-      fc::optional<candidate_object> witness_obj = _remote_db->get_candidate_by_account(witness_owner_account_id);
+      fc::optional<miner_object> witness_obj = _remote_db->get_miner_by_account(witness_owner_account_id);
       if (!witness_obj)
          FC_THROW("Account ${witness} is not registered as a witness", ("witness", witness));
       if (approve)
@@ -5089,7 +5089,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (account_to_modify)(voting_account)(broadcast) ) }
 
-   full_transaction set_desired_candidate_and_wallfacer_member_count(string account_to_modify,
+   full_transaction set_desired_miner_and_wallfacer_member_count(string account_to_modify,
                                                              uint16_t desired_number_of_witnesses,
                                                              uint16_t desired_number_of_committee_members,
                                                              bool broadcast /* = false */)
@@ -6176,9 +6176,9 @@ public:
 	   const auto& account_obj = get_account(account);
 	   return _remote_db->get_account_lock_balance(account_obj.get_id());
    }
-   std::vector<wallfacer_lock_balance_object> get_wallfacer_lock_balance(const string& candidate) const{
-	   FC_ASSERT(candidate.size() != 0, "Param without candidate account ");
-	   const account_object & account_obj = get_account(candidate);
+   std::vector<wallfacer_lock_balance_object> get_wallfacer_lock_balance(const string& miner) const{
+	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
+	   const account_object & account_obj = get_account(miner);
 	   const auto& wallfacer_obj = _remote_db->get_wallfacer_member_by_account(account_obj.get_id());
 	   FC_ASSERT(wallfacer_obj.valid(), "Guard is not exist");
 	   return _remote_db->get_wallfacer_lock_balance(wallfacer_obj->id);
@@ -6186,13 +6186,13 @@ public:
    std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid) {
 	  return _remote_db->get_acquire_transaction(type,trxid);
    }
-   std::vector<lockbalance_object> get_candidate_lock_balance(const string& candidate)const
+   std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const
    {
-	   FC_ASSERT(candidate.size() != 0, "Param without candidate account ");
-	   const account_object & account_obj = get_account(candidate);
-	   const auto& candidate_obj = _remote_db->get_candidate_by_account(account_obj.get_id());
-	   FC_ASSERT(candidate_obj.valid(), "Miner is not exist");
-	   return _remote_db->get_candidate_lock_balance(candidate_obj->id);
+	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
+	   const account_object & account_obj = get_account(miner);
+	   const auto& miner_obj = _remote_db->get_miner_by_account(account_obj.get_id());
+	   FC_ASSERT(miner_obj.valid(), "Miner is not exist");
+	   return _remote_db->get_miner_lock_balance(miner_obj->id);
    }
    full_transaction cancel_order(object_id_type order_id, bool broadcast = false)
    { try {
@@ -6288,7 +6288,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((multi_account)(amount)(asset_symbol)(multi_to_account)(memo))
    }
 
-   full_transaction lock_balance_to_candidates(string lock_account, map<string, vector<asset>> lockbalances, bool broadcast)
+   full_transaction lock_balance_to_miners(string lock_account, map<string, vector<asset>> lockbalances, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -6298,9 +6298,9 @@ public:
 		   signed_transaction tx;
 		   for (const auto& iter : lockbalances)
 		   {
-			   const auto& candidate_account = iter.first;
-			   fc::optional<candidate_object> candidate_obj = get_candidate(candidate_account);
-			   FC_ASSERT(candidate_obj, "Could not find candidate matching ${candidate}", ("candidate", candidate_account));
+			   const auto& miner_account = iter.first;
+			   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+			   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
 			   const auto& assets = iter.second;
 			   for (const auto& asset_vec : assets)
 			   {
@@ -6311,7 +6311,7 @@ public:
 				   lb_op.lock_asset_amount = asset_vec.amount;
 				   lb_op.lock_balance_account = lock_acct->get_id();
 				   lb_op.lock_balance_addr = lock_acct->addr;
-				   lb_op.lockto_candidate_account = candidate_obj->id;
+				   lb_op.lockto_miner_account = miner_obj->id;
 				   tx.operations.push_back(lb_op);
 			   }
 			   
@@ -6323,7 +6323,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((lock_account)(lockbalances)(broadcast))
    }
 
-   full_transaction lock_balance_to_candidate(string candidate_account,
+   full_transaction lock_balance_to_miner(string miner_account,
 	   string lock_account,
 	   string amount,
 	   string asset_symbol,
@@ -6334,14 +6334,14 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(lock_account) != iter.end(), "Could not find account name ${account}", ("account", lock_account));
-		   fc::optional<candidate_object> candidate_obj = get_candidate(candidate_account);
-		   FC_ASSERT(candidate_obj, "Could not find candidate matching ${candidate}", ("candidate", candidate_account));
+		   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+		   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
 		   lockbalance_operation lb_op;
 		   lb_op.lock_asset_id = asset_obj->get_id();
 		   lb_op.lock_asset_amount = asset_obj->amount_from_string(amount).amount;
 		   lb_op.lock_balance_account = iter.find(lock_account)->get_id();
 		   lb_op.lock_balance_addr = iter.find(lock_account)->addr;
-		   lb_op.lockto_candidate_account = candidate_obj->id;
+		   lb_op.lockto_miner_account = miner_obj->id;
 		   signed_transaction tx;
 
 		   tx.operations.push_back(lb_op);
@@ -6349,7 +6349,7 @@ public:
 		   tx.validate();
 
 		   return sign_transaction(tx, broadcast);
-	   }FC_CAPTURE_AND_RETHROW((candidate_account)(lock_account)(amount)(asset_symbol)(broadcast))
+	   }FC_CAPTURE_AND_RETHROW((miner_account)(lock_account)(amount)(asset_symbol)(broadcast))
    }
    full_transaction wallfacer_lock_balance(string wallfacer_account,
 	   string amount,
@@ -6362,7 +6362,7 @@ public:
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(wallfacer_account) != iter.end(), "Could not find account name ${account}", ("account", wallfacer_account));
 		   fc::optional<wallfacer_member_object> wallfacer_obj = get_wallfacer_member(wallfacer_account);
-		   FC_ASSERT(wallfacer_obj, "Could not find candidate matching ${wallfacer}", ("wallfacer", wallfacer_account));
+		   FC_ASSERT(wallfacer_obj, "Could not find miner matching ${wallfacer}", ("wallfacer", wallfacer_account));
 		   wallfacer_lock_balance_operation wallfacer_lb_op;
 		   //lockbalance_operation lb_op;
 		   wallfacer_lb_op.lock_asset_id = asset_obj->get_id();
@@ -6379,7 +6379,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((wallfacer_account)(amount)(asset_symbol)(broadcast))
    }
-   full_transaction foreclose_balance_from_candidates(string foreclose_account, map<string, vector<asset>> foreclose_balances, bool broadcast)
+   full_transaction foreclose_balance_from_miners(string foreclose_account, map<string, vector<asset>> foreclose_balances, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -6389,9 +6389,9 @@ public:
 		   signed_transaction tx;
 		   for (const auto& iter : foreclose_balances)
 		   {
-			   const auto& candidate_account = iter.first;
-			   fc::optional<candidate_object> candidate_obj = get_candidate(candidate_account);
-			   FC_ASSERT(candidate_obj, "Could not find candidate matching ${candidate}", ("candidate", candidate_account));
+			   const auto& miner_account = iter.first;
+			   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+			   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
 			   const auto& assets = iter.second;
 			   for (const auto& asset_vec : assets)
 			   {
@@ -6402,7 +6402,7 @@ public:
 				   fcb_op.foreclose_asset_amount = asset_vec.amount;
 				   fcb_op.foreclose_account = lock_acct->get_id();
 				   fcb_op.foreclose_addr = lock_acct->addr;
-				   fcb_op.foreclose_candidate_account = candidate_obj->id;
+				   fcb_op.foreclose_miner_account = miner_obj->id;
 				   tx.operations.push_back(fcb_op);
 			   }
 
@@ -6415,7 +6415,7 @@ public:
    }
 
 
-   full_transaction foreclose_balance_from_candidate(string candidate_account,
+   full_transaction foreclose_balance_from_miner(string miner_account,
 	   string foreclose_account,
 	   string amount,
 	   string asset_symbol,
@@ -6426,14 +6426,14 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(foreclose_account) != iter.end(), "Could not find account name ${account}", ("account", foreclose_account));
-		   fc::optional<candidate_object> candidate_obj = get_candidate(candidate_account);
-		   FC_ASSERT(candidate_obj, "Could not find candidate matching ${candidate}", ("candidate", candidate_account));
+		   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+		   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
 		   foreclose_balance_operation fcb_op;
 		   fcb_op.foreclose_asset_id = asset_obj->get_id();
 		   fcb_op.foreclose_asset_amount = asset_obj->amount_from_string(amount).amount;
 		   fcb_op.foreclose_account = iter.find(foreclose_account)->get_id();
 		   fcb_op.foreclose_addr = iter.find(foreclose_account)->addr;
-		   fcb_op.foreclose_candidate_account = candidate_obj->id;
+		   fcb_op.foreclose_miner_account = miner_obj->id;
 		   signed_transaction tx;
 
 		   tx.operations.push_back(fcb_op);
@@ -6441,7 +6441,7 @@ public:
 		   tx.validate();
 
 		   return sign_transaction(tx, broadcast);
-	   }FC_CAPTURE_AND_RETHROW((candidate_account)(foreclose_account)(amount)(asset_symbol)(broadcast))
+	   }FC_CAPTURE_AND_RETHROW((miner_account)(foreclose_account)(amount)(asset_symbol)(broadcast))
    }
    full_transaction wallfacer_foreclose_balance(string wallfacer_account,
 	   string amount,
@@ -6454,7 +6454,7 @@ public:
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(wallfacer_account) != iter.end(), "Could not find account name ${account}", ("account", wallfacer_account));
 		   fc::optional<wallfacer_member_object> wallfacer_obj = get_wallfacer_member(wallfacer_account);
-		   FC_ASSERT(wallfacer_obj, "Could not find candidate matching ${wallfacer}", ("wallfacer", wallfacer_account));
+		   FC_ASSERT(wallfacer_obj, "Could not find miner matching ${wallfacer}", ("wallfacer", wallfacer_account));
 		   wallfacer_foreclose_balance_operation wallfacer_fcb_op;
 		   //lockbalance_operation lb_op;
 		   wallfacer_fcb_op.foreclose_asset_id = asset_obj->get_id();
@@ -7340,17 +7340,17 @@ public:
          "\n";
       }
    }
-   void use_candidate_api()
+   void use_miner_api()
    {
-       if (_remote_candidate)
+       if (_remote_miner)
            return;
        try
        {
-           _remote_candidate = _remote_api->candidate();
+           _remote_miner = _remote_api->miner();
        }
        catch (const fc::exception& e)
        {
-           std::cerr << "\nCouldn't get candidate API.  You probably are not configured\n"
+           std::cerr << "\nCouldn't get miner API.  You probably are not configured\n"
                "to access the network API on the witness_node you are\n"
                "connecting to.  Please follow the instructions in README.md to set up an apiaccess file.\n"
                "\n";
@@ -7379,18 +7379,18 @@ public:
        use_localnode_api();
        (*_remote_local_node)->witness_node_stop();
    }
-   void start_candidate(bool start)
+   void start_miner(bool start)
    {
-       use_candidate_api();
-       (*_remote_candidate)->start_candidate(start);
+       use_miner_api();
+       (*_remote_miner)->start_miner(start);
    }
-   void start_mining(const std::map<chain::candidate_id_type, fc::ecc::private_key>& keys)
+   void start_mining(const std::map<chain::miner_id_type, fc::ecc::private_key>& keys)
    {
-	   use_candidate_api();
+	   use_miner_api();
 	   if(!keys.empty())
-			(*_remote_candidate)->set_candidate(keys,true);
+			(*_remote_miner)->set_miner(keys,true);
 	   else
-		   (*_remote_candidate)->set_candidate(keys, false);
+		   (*_remote_miner)->set_miner(keys, false);
    }
    void network_add_nodes( const vector<string>& nodes )
    {
@@ -7493,10 +7493,10 @@ public:
    fc::api<network_broadcast_api>   _remote_net_broadcast;
    fc::api<history_api>    _remote_hist;
    fc::api<transaction_api> _remote_trx;
-   optional<fc::api<candidate_api>> _remote_candidate;
+   optional<fc::api<miner_api>> _remote_miner;
    optional<fc::api<localnode_api>> _remote_local_node;
    optional< fc::api<network_node_api> > _remote_net_node;
-   optional< fc::api<graphene::debug_candidate::debug_api> > _remote_debug;
+   optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
    optional< fc::api<crosschain_api> >   _crosschain_manager;
    flat_map<string, operation> _prototype_ops;
    optional<guarantee_object_id_type>    _guarantee_id;
@@ -7700,7 +7700,7 @@ optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 	   tx_ids.push_back(full_trx.trxid);
    }
    auto glob_info = get_global_properties();
-   block_with_info.reward = my->_remote_db->get_candidate_pay_per_block(num)+block->trxfee;
+   block_with_info.reward = my->_remote_db->get_miner_pay_per_block(num)+block->trxfee;
    block_with_info.transaction_ids.swap(tx_ids);
    return block_with_info;
 }
@@ -7727,11 +7727,11 @@ vector<asset> wallet_api::list_account_balances(const string& id)
    return my->_remote_db->get_account_balances(my->get_account(id).id, flat_set<asset_id_type>());
 }
 
-std::vector<wallfacer_lock_balance_object> wallet_api::get_wallfacer_lock_balance(const string& candidate)const {
-	return my->get_wallfacer_lock_balance(candidate);
+std::vector<wallfacer_lock_balance_object> wallet_api::get_wallfacer_lock_balance(const string& miner)const {
+	return my->get_wallfacer_lock_balance(miner);
 }
-std::vector<lockbalance_object> wallet_api::get_candidate_lock_balance(const string& candidate)const {
-	return my->get_candidate_lock_balance(candidate);
+std::vector<lockbalance_object> wallet_api::get_miner_lock_balance(const string& miner)const {
+	return my->get_miner_lock_balance(miner);
 }
 std::vector<acquired_crosschain_trx_object> wallet_api::get_acquire_transaction(const int & type, const string & trxid) {
 	return my->get_acquire_transaction(type, trxid);
@@ -8456,9 +8456,9 @@ address wallet_api::wallet_create_account(string account_name)
 	return my->create_account(account_name);
 }
 
-full_transaction wallet_api::set_candidate_pledge_pay_back_rate(const string& candidate, int pledge_pay_back_rate, bool broadcast)
+full_transaction wallet_api::set_miner_pledge_pay_back_rate(const string& miner, int pledge_pay_back_rate, bool broadcast)
 {
-	return my->set_candidate_pledge_pay_back_rate(candidate, pledge_pay_back_rate, broadcast);
+	return my->set_miner_pledge_pay_back_rate(miner, pledge_pay_back_rate, broadcast);
 }
 full_transaction wallet_api::issue_asset(string to_account, string amount, string symbol,
                                            string memo, bool broadcast)
@@ -8576,17 +8576,17 @@ vector<transaction_id_type> wallet_api::get_pending_transactions() const
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
 	return my->get_account_lock_balance(account);
 }
-full_transaction wallet_api::lock_balance_to_candidate(string candidate_account,
+full_transaction wallet_api::lock_balance_to_miner(string miner_account,
 	string lock_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
-	return my->lock_balance_to_candidate(candidate_account, lock_account,amount, asset_symbol, broadcast);
+	return my->lock_balance_to_miner(miner_account, lock_account,amount, asset_symbol, broadcast);
 }
 
-full_transaction wallet_api::lock_balance_to_candidates(string lock_account, map<string, vector<asset>> lockbalances, bool broadcast /* = false */)
+full_transaction wallet_api::lock_balance_to_miners(string lock_account, map<string, vector<asset>> lockbalances, bool broadcast /* = false */)
 {
-	return my->lock_balance_to_candidates(lock_account, lockbalances,broadcast);
+	return my->lock_balance_to_miners(lock_account, lockbalances,broadcast);
 }
 
 full_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
@@ -8611,17 +8611,17 @@ full_transaction wallet_api::wallfacer_lock_balance(string wallfacer_account,
 	bool broadcast/* = false*/) {
 	return my->wallfacer_lock_balance(wallfacer_account, amount, asset_symbol, broadcast);
 }
-full_transaction wallet_api::foreclose_balance_from_candidate(string candidate_account,
+full_transaction wallet_api::foreclose_balance_from_miner(string miner_account,
 	string foreclose_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
-	return my->foreclose_balance_from_candidate(candidate_account, foreclose_account, amount, asset_symbol, broadcast);
+	return my->foreclose_balance_from_miner(miner_account, foreclose_account, amount, asset_symbol, broadcast);
 }
 
-full_transaction wallet_api::foreclose_balance_from_candidates(string foreclose_account, map<string, vector<asset>> foreclose_balances, bool broadcast /* = false */)
+full_transaction wallet_api::foreclose_balance_from_miners(string foreclose_account, map<string, vector<asset>> foreclose_balances, bool broadcast /* = false */)
 {
-	return my->foreclose_balance_from_candidates(foreclose_account,foreclose_balances,broadcast);
+	return my->foreclose_balance_from_miners(foreclose_account,foreclose_balances,broadcast);
 }
 
 full_transaction wallet_api::wallfacer_foreclose_balance(string wallfacer_account,
@@ -8760,9 +8760,9 @@ full_transaction wallet_api::update_wallfacer_formal(string proposing_account, m
 	return my->update_wallfacer_formal(proposing_account, replace_queue, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::candidate_referendum_for_wallfacer(const string& candidate,const string& amount ,const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
+full_transaction wallet_api::miner_referendum_for_wallfacer(const string& miner,const string& amount ,const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
 {
-	return my->candidate_referendum_for_wallfacer(candidate,amount,replacement,broadcast);
+	return my->miner_referendum_for_wallfacer(miner,amount,replacement,broadcast);
 }
 
 full_transaction wallet_api::referendum_accelerate_pledge(const referendum_id_type referendum_id, const string& amount, bool broadcast /* = true */)
@@ -8790,9 +8790,9 @@ full_transaction wallet_api::resign_wallfacer_member(string proposing_account, s
     return my->resign_wallfacer_member(proposing_account, account, expiration_time, broadcast);
 }
 
-map<string,candidate_id_type> wallet_api::list_candidates(const string& lowerbound, uint32_t limit)
+map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)
 {
-   return my->_remote_db->lookup_candidate_accounts(lowerbound, limit);
+   return my->_remote_db->lookup_miner_accounts(lowerbound, limit);
 }
 
 map<string,wallfacer_member_id_type> wallet_api::list_wallfacer_members(const string& lowerbound, uint32_t limit)
@@ -8816,9 +8816,9 @@ map<string, wallfacer_member_id_type> wallet_api::list_all_wallfacers(const stri
 }
 
 
-candidate_object wallet_api::get_candidate(string owner_account)
+miner_object wallet_api::get_miner(string owner_account)
 {
-   return my->get_candidate(owner_account);
+   return my->get_miner(owner_account);
 }
 
 wallfacer_member_object wallet_api::get_wallfacer_member(string owner_account)
@@ -8826,17 +8826,17 @@ wallfacer_member_object wallet_api::get_wallfacer_member(string owner_account)
    return my->get_wallfacer_member(owner_account);
 }
 
-flat_set<candidate_id_type> wallet_api::list_active_candidates()
+flat_set<miner_id_type> wallet_api::list_active_miners()
 {
-	return my->list_active_candidates();
+	return my->list_active_miners();
 }
 
 
-full_transaction wallet_api::create_candidate(string owner_account,
+full_transaction wallet_api::create_miner(string owner_account,
                                               string url,
                                               bool broadcast /* = false */)
 {
-   return my->create_candidate(owner_account, url, broadcast);
+   return my->create_miner(owner_account, url, broadcast);
 }
 
 full_transaction wallet_api::create_worker(
@@ -8907,12 +8907,12 @@ full_transaction wallet_api::set_voting_proxy(string account_to_modify,
    return my->set_voting_proxy(account_to_modify, voting_account, broadcast);
 }
 
-full_transaction wallet_api::set_desired_candidate_and_wallfacer_member_count(string account_to_modify,
+full_transaction wallet_api::set_desired_miner_and_wallfacer_member_count(string account_to_modify,
                                                                       uint16_t desired_number_of_witnesses,
                                                                       uint16_t desired_number_of_committee_members,
                                                                       bool broadcast /* = false */)
 {
-   return my->set_desired_candidate_and_wallfacer_member_count(account_to_modify, desired_number_of_witnesses,
+   return my->set_desired_miner_and_wallfacer_member_count(account_to_modify, desired_number_of_witnesses,
                                                      desired_number_of_committee_members, broadcast);
 }
 
@@ -9911,9 +9911,9 @@ map<public_key_type,address> wallet_api::create_multisignature_address(const str
 {
 	return my->create_multisignature_address(account,pubs,required,broadcast);
 }
-map<account_id_type, vector<asset>> wallet_api::get_candidate_lockbalance_info(const string& account)
+map<account_id_type, vector<asset>> wallet_api::get_miner_lockbalance_info(const string& account)
 {
-	return my->get_candidate_lockbalance_info(account);
+	return my->get_miner_lockbalance_info(account);
 }
 vector<optional< eth_multi_account_trx_object>> wallet_api::get_eth_multi_account_trx(const int & mul_acc_tx_state) {
 	return my->get_eth_multi_account_trx(mul_acc_tx_state);
@@ -10560,32 +10560,32 @@ map<string, crosschain_prkeys> wallet_api::decrypt_coldkeys(const string& key, c
 	}
 	return keys;
 }
-void wallet_api::start_candidate(bool start)
+void wallet_api::start_miner(bool start)
 {
-    my->start_candidate(start);
+    my->start_miner(start);
 }
 void wallet_api::start_mining(const vector<string>& accts)
 {
-	vector<string> candidates;
-	map<candidate_id_type, private_key> keys;
+	vector<string> miners;
+	map<miner_id_type, private_key> keys;
 	auto& idx = my->_wallet.my_accounts.get<by_name>();
 	for (auto acct : accts)
 	{
 		auto oac=idx.find(acct);
 		FC_ASSERT(oac!= idx.end(), "account not found!");
 		auto acc_obj = *(oac);
-		fc::optional<candidate_object> witness = my->_remote_db->get_candidate_by_account(acc_obj.get_id());
+		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
 		if (!witness.valid())
 			continue;
 		FC_ASSERT(my->_keys.find(acc_obj.addr)!=my->_keys.end(),"my key is not in keys");
 		fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(my->_keys[acc_obj.addr]);
 		if (!optional_private_key)
 			FC_THROW("Invalid private key");
-		keys.insert(make_pair((*witness).id.as<candidate_id_type>(),*optional_private_key));
-		candidates.push_back( acct);
+		keys.insert(make_pair((*witness).id.as<miner_id_type>(),*optional_private_key));
+		miners.push_back( acct);
 	}
 	my->start_mining(keys);
-	my->_wallet.mining_accounts = candidates;
+	my->_wallet.mining_accounts = miners;
 }
 std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {

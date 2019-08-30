@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE( update_account_keys, database_fixture )
       const asset_object& core = asset_id_type()(db);
       uint32_t skip_flags =
           database::skip_transaction_dupe_check
-        | database::skip_candidate_signature
+        | database::skip_miner_signature
         | database::skip_transaction_signatures
         | database::skip_authority_check
         ;
@@ -263,8 +263,8 @@ BOOST_FIXTURE_TEST_CASE( witness_order_mc_test, database_fixture )
       size_t num_witnesses = db.get_global_properties().active_witnesses.size();
       size_t dmin = num_witnesses >> 1;
 
-      vector< candidate_id_type > cur_round;
-      vector< candidate_id_type > full_schedule;
+      vector< miner_id_type > cur_round;
+      vector< miner_id_type > full_schedule;
       // if we make the maximum witness count testable,
       // we'll need to enlarge this.
       std::bitset< 0x40 > witness_seen;
@@ -284,7 +284,7 @@ BOOST_FIXTURE_TEST_CASE( witness_order_mc_test, database_fixture )
          {
              wdump( (db.head_block_num()) );
          }
-         candidate_id_type wid = db.get_scheduled_candidate( 1 );
+         miner_id_type wid = db.get_scheduled_miner( 1 );
          full_schedule.push_back( wid );
          cur_round.push_back( wid );
          if( cur_round.size() == num_witnesses )
@@ -292,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE( witness_order_mc_test, database_fixture )
             // check that the current round contains exactly 1 copy
             // of each witness
             witness_seen.reset();
-            for( const candidate_id_type& w : cur_round )
+            for( const miner_id_type& w : cur_round )
             {
                uint64_t inst = w.instance.value;
                BOOST_CHECK( !witness_seen.test( inst ) );

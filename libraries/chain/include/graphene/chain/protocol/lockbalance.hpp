@@ -13,7 +13,7 @@ namespace graphene {
 			share_type foreclose_asset_amount;
 			address foreclose_contract_addr;
 			account_id_type foreclose_account;
-			candidate_id_type foreclose_candidate_account;
+			miner_id_type foreclose_miner_account;
 
 			address foreclose_addr;
 			address fee_payer()const { return foreclose_addr; }
@@ -33,7 +33,7 @@ namespace graphene {
 			address contract_addr;
 
 			account_id_type lock_balance_account;
-			candidate_id_type lockto_candidate_account;
+			miner_id_type lockto_miner_account;
 
 			address lock_balance_addr;
 			asset fee;
@@ -53,5 +53,5 @@ namespace graphene {
 FC_REFLECT(graphene::chain::lockbalance_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::foreclose_balance_operation::fee_parameters_type, (fee))
 
-FC_REFLECT(graphene::chain::lockbalance_operation,(lock_asset_id)(lock_asset_amount)(contract_addr)(lock_balance_account)(lockto_candidate_account)(lock_balance_addr)(fee))
-FC_REFLECT(graphene::chain::foreclose_balance_operation,(fee)(foreclose_asset_id)(foreclose_asset_amount)(foreclose_candidate_account)(foreclose_contract_addr)(foreclose_account)(foreclose_addr))
+FC_REFLECT(graphene::chain::lockbalance_operation,(lock_asset_id)(lock_asset_amount)(contract_addr)(lock_balance_account)(lockto_miner_account)(lock_balance_addr)(fee))
+FC_REFLECT(graphene::chain::foreclose_balance_operation,(fee)(foreclose_asset_id)(foreclose_asset_amount)(foreclose_miner_account)(foreclose_contract_addr)(foreclose_account)(foreclose_addr))

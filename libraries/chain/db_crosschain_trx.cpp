@@ -349,7 +349,7 @@ namespace graphene {
 		void create_eth_call_message_param(){
 
 		}
-		void database::create_result_transaction(candidate_id_type candidate, fc::ecc::private_key pk) {
+		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {
 				//need to check if multisig transaction created
 				auto start = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().lower_bound(coldhot_trx_state::coldhot_without_sign_trx_create);
@@ -590,12 +590,12 @@ namespace graphene {
 					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
-					trx_op.candidate_broadcast = candidate;
+					trx_op.miner_broadcast = miner;
 					trx_op.asset_symbol = asset_symbol;
 					trx_op.asset_id = opt_asset->id;
-					optional<candidate_object> candidate_iter = get(candidate);
-					optional<account_object> account_iter = get(candidate_iter->candidate_account);
-					trx_op.candidate_address = account_iter->addr;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
 					trx_op.crosschain_fee = t_fee-cross_fee;
 					signed_transaction tx;
 
@@ -614,7 +614,7 @@ namespace graphene {
 				}
 			}FC_CAPTURE_AND_LOG((0))
 		}
-		void database::create_acquire_crosschhain_transaction(candidate_id_type candidate, fc::ecc::private_key pk){
+		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
 			try {
 				map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
@@ -691,10 +691,10 @@ namespace graphene {
 							}
 							if (eth_cold_account_create_trx || eth_hot_account_create_trx) {
 								eth_multi_account_create_record_operation op;
-								op.candidate_broadcast = candidate;
-								optional<candidate_object> candidate_iter = get(candidate);
-								optional<account_object> account_iter = get(candidate_iter->candidate_account);
-								op.candidate_address = account_iter->addr;
+								op.miner_broadcast = miner;
+								optional<miner_object> miner_iter = get(miner);
+								optional<account_object> account_iter = get(miner_iter->miner_account);
+								op.miner_address = account_iter->addr;
 								op.chain_type = acquired_trx.handle_trx.asset_symbol;
 								op.eth_multi_account_trx = acquired_trx.handle_trx;
 								op.pre_trx_id = pre_trx_id;
@@ -756,10 +756,10 @@ namespace graphene {
 								if (multi_account_count == 2) {
 									coldhot_transfer_result_operation op;
 									op.coldhot_trx_original_chain = acquired_trx.handle_trx;
-									op.candidate_broadcast = candidate;
-									optional<candidate_object> candidate_iter = get(candidate);
-									optional<account_object> account_iter = get(candidate_iter->candidate_account);
-									op.candidate_address = account_iter->addr;
+									op.miner_broadcast = miner;
+									optional<miner_object> miner_iter = get(miner);
+									optional<account_object> account_iter = get(miner_iter->miner_account);
+									op.miner_address = account_iter->addr;
 									signed_transaction tx;
 									uint32_t expiration_time_offset = 0;
 									auto dyn_props = get_dynamic_global_properties();
@@ -790,10 +790,10 @@ namespace graphene {
 									op.asset_id = asset_itr->id;
 									op.asset_symbol = acquired_trx.handle_trx.asset_symbol;
 									op.cross_chain_trx = acquired_trx.handle_trx;
-									op.candidate_broadcast = candidate;
-									optional<candidate_object> candidate_iter = get(candidate);
-									optional<account_object> account_iter = get(candidate_iter->candidate_account);
-									op.candidate_address = account_iter->addr;
+									op.miner_broadcast = miner;
+									optional<miner_object> miner_iter = get(miner);
+									optional<account_object> account_iter = get(miner_iter->miner_account);
+									op.miner_address = account_iter->addr;
 									op.deposit_address = tunnel_itr->owner;
 									signed_transaction tx;
 									uint32_t expiration_time_offset = 0;
@@ -837,10 +837,10 @@ namespace graphene {
 										continue;
 									}
 									op.cross_chain_trx = acquired_trx.handle_trx;
-									op.candidate_broadcast = candidate;
-									optional<candidate_object> candidate_iter = get(candidate);
-									optional<account_object> account_iter = get(candidate_iter->candidate_account);
-									op.candidate_address = account_iter->addr;
+									op.miner_broadcast = miner;
+									optional<miner_object> miner_iter = get(miner);
+									optional<account_object> account_iter = get(miner_iter->miner_account);
+									op.miner_address = account_iter->addr;
 									signed_transaction tx;
 									uint32_t expiration_time_offset = 0;
 									auto dyn_props = get_dynamic_global_properties();
@@ -887,10 +887,10 @@ namespace graphene {
 						if (multi_account_count == 2) {
 							coldhot_transfer_result_operation op;
 							op.coldhot_trx_original_chain = acquired_trx.handle_trx;
-							op.candidate_broadcast = candidate;
-							optional<candidate_object> candidate_iter = get(candidate);
-							optional<account_object> account_iter = get(candidate_iter->candidate_account);
-							op.candidate_address = account_iter->addr;
+							op.miner_broadcast = miner;
+							optional<miner_object> miner_iter = get(miner);
+							optional<account_object> account_iter = get(miner_iter->miner_account);
+							op.miner_address = account_iter->addr;
 							signed_transaction tx;
 							uint32_t expiration_time_offset = 0;
 							auto dyn_props = get_dynamic_global_properties();
@@ -921,10 +921,10 @@ namespace graphene {
 							op.asset_id = asset_itr->id;
 							op.asset_symbol = acquired_trx.handle_trx.asset_symbol;
 							op.cross_chain_trx = acquired_trx.handle_trx;
-							op.candidate_broadcast = candidate;
-							optional<candidate_object> candidate_iter = get(candidate);
-							optional<account_object> account_iter = get(candidate_iter->candidate_account);
-							op.candidate_address = account_iter->addr;
+							op.miner_broadcast = miner;
+							optional<miner_object> miner_iter = get(miner);
+							optional<account_object> account_iter = get(miner_iter->miner_account);
+							op.miner_address = account_iter->addr;
 							op.deposit_address = tunnel_itr->owner;
 							signed_transaction tx;
 							uint32_t expiration_time_offset = 0;
@@ -960,10 +960,10 @@ namespace graphene {
 							}
 								
 							op.cross_chain_trx = acquired_trx.handle_trx;
-							op.candidate_broadcast = candidate;
-							optional<candidate_object> candidate_iter = get(candidate);
-							optional<account_object> account_iter = get(candidate_iter->candidate_account);
-							op.candidate_address = account_iter->addr;
+							op.miner_broadcast = miner;
+							optional<miner_object> miner_iter = get(miner);
+							optional<account_object> account_iter = get(miner_iter->miner_account);
+							op.miner_address = account_iter->addr;
 							signed_transaction tx;
 							uint32_t expiration_time_offset = 0;
 							auto dyn_props = get_dynamic_global_properties();
@@ -984,7 +984,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_LOG((0))
 			
 		}
-		void database::combine_sign_transaction(candidate_id_type candidate, fc::ecc::private_key pk) {
+		void database::combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {
 				map<transaction_id_type, vector<transaction_id_type>> uncombine_trxs_counts;
 				get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
@@ -1100,7 +1100,7 @@ namespace graphene {
 					trx_op.asset_symbol = with_sign_op.asset_symbol;
 					trx_op.signed_trx_ids.swap(trxs.second);
 					trx_op.crosschain_fee = with_sign_op.crosschain_fee;
-					trx_op.candidate_broadcast = candidate;
+					trx_op.miner_broadcast = miner;
 					if (with_sign_op.asset_symbol == "ETH" || with_sign_op.asset_symbol.find("ERC") != with_sign_op.asset_symbol.npos){
 						auto source_without_sign_trx = with_sign_op.withdraw_source_trx;
 						if ((source_without_sign_trx.contains("msg_prefix")) && (source_without_sign_trx.contains("contract_addr"))) {
@@ -1115,9 +1115,9 @@ namespace graphene {
 					else {
 					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).trxs.begin()->second.trx_id;
 					}
-					optional<candidate_object> candidate_iter = get(candidate);
-					optional<account_object> account_iter = get(candidate_iter->candidate_account);
-					trx_op.candidate_address = account_iter->addr;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
 					trx_op.withdraw_trx = trx_itr->real_transaction.id();
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;

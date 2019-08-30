@@ -115,12 +115,12 @@ struct get_impacted_account_visitor
    void operator()( const asset_global_settle_operation& op ) {}
    void operator()( const asset_publish_feed_operation& op ) {}
    void operator()(const normal_asset_publish_feed_operation& op) {}
-   void operator()( const candidate_create_operation& op )
+   void operator()( const miner_create_operation& op )
    {
-      _impacted.insert( op.candidate_account );
+      _impacted.insert( op.miner_account );
    }
-   void operator() (const candidate_generate_multi_asset_operation& op) {}
-   void operator() (const candidate_merge_signatures_operation& op) {}
+   void operator() (const miner_generate_multi_asset_operation& op) {}
+   void operator() (const miner_merge_signatures_operation& op) {}
    void operator()( const witness_update_operation& op )
    {
       _impacted.insert( op.witness_account );
@@ -288,7 +288,7 @@ struct get_impacted_account_visitor
    void operator()(const storage_operation& op) {}
    void operator()(const transfer_contract_operation& op) {}
    void operator()(const contract_transfer_fee_proposal_operation& op) {}
-   void operator()(const candidate_referendum_wallfacer_operation& op) {}
+   void operator()(const miner_referendum_wallfacer_operation& op) {}
 
    void operator()(const eth_seri_wallfacer_sign_operation & op){}
    void operator()(const eths_wallfacer_sign_final_operation & op) {}

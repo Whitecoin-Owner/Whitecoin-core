@@ -944,7 +944,7 @@ namespace graphene { namespace net { namespace detail {
           display_current_connections();
 
           // if we broke out of the while loop, that means either we have connected to enough nodes, or
-          // we don't have any good candidates to connect to right now.
+          // we don't have any good miners to connect to right now.
 #if 0
           try
           {
@@ -952,7 +952,7 @@ namespace graphene { namespace net { namespace detail {
             if( is_wanting_new_connections() || !_add_once_node_list.empty() )
             {
               if( is_wanting_new_connections() )
-                dlog( "Still want to connect to more nodes, but I don't have any good candidates.  Trying again in 15 seconds" );
+                dlog( "Still want to connect to more nodes, but I don't have any good miners.  Trying again in 15 seconds" );
               else
                 dlog( "I still have some \"add once\" nodes to connect to.  Trying again in 15 seconds" );
               _retrigger_connect_loop_promise->wait_until( fc::time_point::now() + fc::seconds(GRAPHENE_PEER_DATABASE_RETRY_DELAY ) );

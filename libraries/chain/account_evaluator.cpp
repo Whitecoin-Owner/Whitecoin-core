@@ -66,8 +66,8 @@ void verify_account_votes( const database& db, const account_options& options )
    const auto& gpo = db.get_global_properties();
    const auto& chain_params = gpo.parameters;
 
-   FC_ASSERT( options.num_witness <= chain_params.maximum_candidate_count,
-              "Voted for more witnesses than currently allowed (${c})", ("c", chain_params.maximum_candidate_count) );
+   FC_ASSERT( options.num_witness <= chain_params.maximum_miner_count,
+              "Voted for more witnesses than currently allowed (${c})", ("c", chain_params.maximum_miner_count) );
    FC_ASSERT( options.num_committee <= chain_params.maximum_wallfacer_count,
               "Voted for more committee members than currently allowed (${c})", ("c", chain_params.maximum_wallfacer_count) );
 
@@ -79,7 +79,7 @@ void verify_account_votes( const database& db, const account_options& options )
       has_worker_votes |= (id.type() == vote_id_type::worker);
    }
 
-   FC_ASSERT(options.candidate_pledge_pay_back >= 0 && options.candidate_pledge_pay_back <= GRAPHENE_MINER_PAY_BACK_RATIO, "candidate_pledge_pay_back must between 0 50");
+   FC_ASSERT(options.miner_pledge_pay_back >= 0 && options.miner_pledge_pay_back <= GRAPHENE_MINER_PAY_BACK_RATIO, "miner_pledge_pay_back must between 0 50");
    const auto& against_worker_idx = db.get_index_type<worker_index>().indices().get<by_vote_against>();
    for (auto id : options.votes)
    {

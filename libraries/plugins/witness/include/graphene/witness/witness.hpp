@@ -29,7 +29,7 @@
 
 #include <fc/thread/future.hpp>
 #include <mutex>
-namespace graphene { namespace candidate_plugin {
+namespace graphene { namespace miner_plugin {
 
 namespace block_production_condition
 {
@@ -48,9 +48,9 @@ namespace block_production_condition
    };
 }
 
-class candidate_plugin :public graphene::app::plugin {
+class miner_plugin :public graphene::app::plugin {
 public:
-   ~candidate_plugin() {
+   ~miner_plugin() {
       try {
          if( _block_production_task.valid() || !_block_production_task.canceled())
             _block_production_task.cancel_and_wait(__FUNCTION__);
@@ -69,7 +69,7 @@ public:
       ) override;
 
    void set_block_production(bool allow) { _production_enabled = allow; }
-   void set_candidate(const map<chain::candidate_id_type, fc::ecc::private_key>&, bool add = false);
+   void set_miner(const map<chain::miner_id_type, fc::ecc::private_key>&, bool add = false);
 
    virtual void plugin_initialize( const boost::program_options::variables_map& options ) override;
    virtual void plugin_startup() override;
@@ -79,20 +79,20 @@ private:
    void schedule_production_loop();
    block_production_condition::block_production_condition_enum block_production_loop();
    block_production_condition::block_production_condition_enum maybe_produce_block( fc::mutable_variant_object& capture );
-   fc::variant check_generate_multi_addr(chain::candidate_id_type candidate,fc::ecc::private_key prk);
-   void check_eths_generate_multi_addr(chain::candidate_id_type candidate, fc::ecc::private_key prk);
-   void check_multi_transfer(chain::candidate_id_type candidate, fc::ecc::private_key prk);
+   fc::variant check_generate_multi_addr(chain::miner_id_type miner,fc::ecc::private_key prk);
+   void check_eths_generate_multi_addr(chain::miner_id_type miner, fc::ecc::private_key prk);
+   void check_multi_transfer(chain::miner_id_type miner, fc::ecc::private_key prk);
 boost::program_options::variables_map _options;
    volatile bool _production_enabled = false;
    bool _consecutive_production_enabled = false;
-   uint32_t _required_candidate_participation = 33 * GRAPHENE_1_PERCENT;
+   uint32_t _required_miner_participation = 33 * GRAPHENE_1_PERCENT;
    uint32_t _production_skip_flags = graphene::chain::database::skip_nothing;
 
    std::map<chain::public_key_type, fc::ecc::private_key> _private_keys;
-   std::set<chain::candidate_id_type> _candidates;
-   std::mutex _candidate_lock;
+   std::set<chain::miner_id_type> _miners;
+   std::mutex _miner_lock;
    fc::future<void> _block_production_task;
    int min_gas_price;
 };
 
-} } //graphene::candidate_plugin
+} } //graphene::miner_plugin

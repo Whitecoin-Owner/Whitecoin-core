@@ -691,8 +691,8 @@ BOOST_FIXTURE_TEST_CASE(crosschain_withdraw_operation_test,database_fixture)
 		sign(trx, private_key);
 		db.push_transaction(trx, ~0);
 		generate_block();
-		const auto id = get_candidate("candidate0");
-		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("candidate0")));
+		const auto id = get_miner("miner0");
+		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("miner0")));
 		db.create_result_transaction(id, private_key);
 	}
 	catch (fc::exception& e) {
@@ -1229,17 +1229,17 @@ BOOST_FIXTURE_TEST_CASE(lock_balance, database_fixture)
 {
 	try {
 		generate_block();
-		const account_object& nathan = get_account("candidate6");
+		const account_object& nathan = get_account("miner6");
 		transfer(account_id_type()(db), nathan, asset(100000));
 		generate_block();
 		lockbalance_operation op;
 		const asset_object& uia = *db.get_index_type<asset_index>().indices().get<by_symbol>().find("LNK");
 		//const account_object& nathan = *db.get_index_type<account_index>().indices().get<by_name>().find("nathan");
-		const candidate_object& candidate = *db.get_index_type<candidate_index>().indices().get<by_account>().find(nathan.get_id());
+		const miner_object& miner = *db.get_index_type<miner_index>().indices().get<by_account>().find(nathan.get_id());
 		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000);
 		op.lock_asset_id = uia.get_id();
 		op.lock_balance_account = nathan.get_id();
-		op.lockto_candidate_account = candidate.id;
+		op.lockto_miner_account = miner.id;
 		op.lock_asset_amount = 10;
 		op.lock_balance_addr = nathan.addr;
 		trx.operations.push_back(op);
@@ -1247,7 +1247,7 @@ BOOST_FIXTURE_TEST_CASE(lock_balance, database_fixture)
 		PUSH_TX(db, trx, ~0);
 		generate_block();
 		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000 - 10);
-		auto amcc = get_lock_balance(nathan.get_id(), candidate.id, uia.get_id()).amount;
+		auto amcc = get_lock_balance(nathan.get_id(), miner.id, uia.get_id()).amount;
 		
 		BOOST_CHECK_EQUAL(amcc.value, 10);
 	}
@@ -1261,19 +1261,19 @@ BOOST_FIXTURE_TEST_CASE(foreclose_balance, database_fixture)
 	try {
 		INVOKE(lock_balance);
 		foreclose_balance_operation op;
-		const account_object& nathan = get_account("candidate6");
+		const account_object& nathan = get_account("miner6");
 		const asset_object& uia = *db.get_index_type<asset_index>().indices().get<by_symbol>().find("LNK");
-		const candidate_object& candidate = *db.get_index_type<candidate_index>().indices().get<by_account>().find(nathan.get_id());
+		const miner_object& miner = *db.get_index_type<miner_index>().indices().get<by_account>().find(nathan.get_id());
 		op.foreclose_account = nathan.get_id();
 		op.foreclose_addr = nathan.addr;
 		op.foreclose_asset_amount = 10;
 		op.foreclose_asset_id = uia.get_id();
-		op.foreclose_candidate_account = candidate.id;
+		op.foreclose_miner_account = miner.id;
 		trx.operations.push_back(op);
 		BOOST_TEST_MESSAGE("foreclose balance to nathan");
 		PUSH_TX(db, trx, ~0);
 		generate_block();
-		auto amcc = get_lock_balance(nathan.get_id(), candidate.id, uia.get_id()).amount;
+		auto amcc = get_lock_balance(nathan.get_id(), miner.id, uia.get_id()).amount;
 		BOOST_CHECK_EQUAL(amcc.value, 0);
 		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000);
 	}
@@ -1613,8 +1613,8 @@ BOOST_AUTO_TEST_CASE( witness_feeds )
       const asset_object& bit_usd = get_asset("USDBIT");
       auto& global_props = db.get_global_properties();
       vector<account_id_type> active_witnesses;
-      for( const candidate_id_type& wit_id : global_props.active_witnesses )
-         active_witnesses.push_back( wit_id(db).candidate_account );
+      for( const miner_id_type& wit_id : global_props.active_witnesses )
+         active_witnesses.push_back( wit_id(db).miner_account );
       BOOST_REQUIRE_EQUAL(active_witnesses.size(), 10);
 
       asset_publish_feed_operation op;
@@ -1737,7 +1737,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    auto last_witness_vbo_balance = [&]() -> share_type
    {
-      const candidate_object& wit = db.fetch_block_by_number(db.head_block_num())->candidate(db);
+      const miner_object& wit = db.fetch_block_by_number(db.head_block_num())->miner(db);
       if( !wit.pay_vb.valid() )
          return 0;
       return (*wit.pay_vb)(db).balance.amount;
@@ -1767,7 +1767,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    db.modify( db.get_global_properties(), [&]( global_property_object& _gpo )
    {
-      _gpo.parameters.candidate_pay_per_block = witness_ppb;
+      _gpo.parameters.miner_pay_per_block = witness_ppb;
    } );
 
    BOOST_CHECK_EQUAL(core->dynamic_asset_data_id(db).accumulated_fees.value, 0);
@@ -1813,26 +1813,26 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
    BOOST_CHECK( core->reserved(db).value == 8000*prec );
    generate_block();
    BOOST_CHECK_EQUAL( core->reserved(db).value, 999999406 );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().candidate_budget.value, ref_budget );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget );
    // first witness paid from old budget (so no pay)
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, 0 );
    // second witness finally gets paid!
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().candidate_budget.value, ref_budget - witness_ppb );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget - witness_ppb );
 
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().candidate_budget.value, ref_budget - 2 * witness_ppb );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget - 2 * witness_ppb );
 
    generate_block();
    BOOST_CHECK_LT( last_witness_vbo_balance().value, witness_ppb );
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, ref_budget - 2 * witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().candidate_budget.value, 0 );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, 0 );
 
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, 0 );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().candidate_budget.value, 0 );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, 0 );
    BOOST_CHECK_EQUAL(core->reserved(db).value, 999999406 );
 
 } FC_LOG_AND_RETHROW() }

@@ -28,7 +28,7 @@ namespace graphene {
 				const asset_object&   asset_type = o.lock_asset_id(d);
 				d.adjust_balance(o.lock_address, asset(-o.lock_asset_amount, o.lock_asset_id));
 				d.adjust_wallfacer_lock_balance(o.lock_balance_account, asset(o.lock_asset_amount, o.lock_asset_id));
-				//d.adjust_lock_balance(o.lockto_candidate_account, o.lock_balance_account, o.lock_asset_amount);
+				//d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account, o.lock_asset_amount);
 				// 			auto & iter = d.get_index_type<wallfacer_member_index>().indices().get<by_account>();
 				// 			auto itr = iter.find(o.lock_balance_account);
 				//optional<wallfacer_member_object> iter = d.get(o.lock_balance_account);
@@ -65,7 +65,7 @@ namespace graphene {
 				const asset_object&   asset_type = o.foreclose_asset_id(d);
 				d.adjust_balance(o.foreclose_address, asset(o.foreclose_asset_amount,o.foreclose_asset_id));
 				d.adjust_wallfacer_lock_balance(o.foreclose_balance_account, asset(-o.foreclose_asset_amount, o.foreclose_asset_id));
-				//d.adjust_lock_balance(o.lockto_candidate_account, o.lock_balance_account, o.lock_asset_amount);
+				//d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account, o.lock_asset_amount);
 				// 			auto & iter = d.get_index_type<wallfacer_member_index>().indices().get<by_account>();
 				// 			auto itr = iter.find(o.lock_balance_account);
 				//optional<wallfacer_member_object> iter = d.get(o.foreclose_balance_account);

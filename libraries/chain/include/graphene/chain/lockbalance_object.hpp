@@ -16,7 +16,7 @@ namespace graphene {
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = lockbalance_object_type;
 
-			candidate_id_type lockto_candidate_account;
+			miner_id_type lockto_miner_account;
 			account_id_type lock_balance_account;
 			address lock_balance_contract_addr;
 			asset_id_type lock_asset_id;
@@ -28,27 +28,27 @@ namespace graphene {
 			}
 		};
 		//TODO: Add contract Handle
-		struct by_lock_candidate_asset;
-		struct by_candidate_account;
+		struct by_lock_miner_asset;
+		struct by_miner_account;
 		using lockbalance_multi_index_type = multi_index_container <
 			lockbalance_object,
 			indexed_by <
 			ordered_unique< tag<by_id>,
 			member<object, object_id_type, &object::id>
 			>,
-			ordered_non_unique<tag<by_candidate_account>,
-			member< lockbalance_object, candidate_id_type, &lockbalance_object::lockto_candidate_account>
+			ordered_non_unique<tag<by_miner_account>,
+			member< lockbalance_object, miner_id_type, &lockbalance_object::lockto_miner_account>
 			>,
 			ordered_unique<
-			tag<by_lock_candidate_asset>,
+			tag<by_lock_miner_asset>,
 			composite_key<
 			lockbalance_object,
-			member<lockbalance_object, candidate_id_type, &lockbalance_object::lockto_candidate_account>,
+			member<lockbalance_object, miner_id_type, &lockbalance_object::lockto_miner_account>,
 			member<lockbalance_object, account_id_type, &lockbalance_object::lock_balance_account>,			
 			member<lockbalance_object, asset_id_type, &lockbalance_object::lock_asset_id>
 			>,
 			composite_key_compare<
-			std::less< candidate_id_type >,
+			std::less< miner_id_type >,
 			std::less< account_id_type >,
 			std::less< asset_id_type >
 			>
@@ -60,7 +60,7 @@ namespace graphene {
 }
 
 FC_REFLECT_DERIVED(graphene::chain::lockbalance_object, (graphene::db::object),
-(lockto_candidate_account)
+(lockto_miner_account)
 (lock_balance_account)
 (lock_balance_contract_addr)
 (lock_asset_id)

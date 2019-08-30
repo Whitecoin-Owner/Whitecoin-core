@@ -145,7 +145,7 @@
 #define GRAPHENE_CORE_ASSET_CYCLE_RATE_BITS                   32
 
 #define GRAPHENE_DEFAULT_WITNESS_PAY_PER_BLOCK            (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t( 10) )
-#define GRAPHENE_DEFAULT_candidate_pay_vesting_seconds      (60*60*24)
+#define GRAPHENE_DEFAULT_miner_pay_vesting_seconds      (60*60*24)
 #define GRAPHENE_DEFAULT_WORKER_BUDGET_PER_DAY            (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t(500) * 1000 )
 
 #define GRAPHENE_DEFAULT_MINIMUM_FEEDS                       7
@@ -180,7 +180,7 @@
 ///@{
 /// Represents the current wallfacers, two-week review period
 #define GRAPHENE_GUARD_ACCOUNT (graphene::chain::account_id_type(0))
-/// Represents the current candidates
+/// Represents the current miners
 #define GRAPHENE_MINER_ACCOUNT (graphene::chain::account_id_type(1))
 /// Represents the current committee members
 #define GRAPHENE_RELAXED_COMMITTEE_ACCOUNT (graphene::chain::account_id_type(2))
@@ -191,7 +191,7 @@
 /// Represents the canonical account for specifying you will vote directly (as opposed to a proxy)
 #define GRAPHENE_PROXY_TO_SELF_ACCOUNT (graphene::chain::account_id_type(5))
 /// Sentinel value used in the scheduler.
-#define GRAPHENE_NULL_WITNESS (graphene::chain::candidate_id_type(0))
+#define GRAPHENE_NULL_WITNESS (graphene::chain::miner_id_type(0))
 ///@}
 
 #define GRAPHENE_FBA_STEALTH_DESIGNATED_ASSET (asset_id_type(743))

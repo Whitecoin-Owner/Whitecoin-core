@@ -46,7 +46,7 @@ class referendum_object : public abstract_object<referendum_object>
       optional<time_point_sec>      review_period_time;
       transaction                   proposed_transaction;
 	  share_type                  pledge=0;
-	  fc::uint128_t               candidate_pledge = 0;
+	  fc::uint128_t               miner_pledge = 0;
 	  flat_set<address>     approved_key_approvals;
 	  flat_set<address>     disapproved_key_approvals;
 	  flat_set<address>     required_account_approvals;
@@ -87,7 +87,7 @@ typedef boost::multi_index_container<
       ordered_non_unique< tag< by_expiration >, member< referendum_object, time_point_sec, &referendum_object::expiration_time > >,
 	ordered_non_unique < tag<by_pledge>,composite_key<referendum_object,
 	                                 member<referendum_object, share_type, &referendum_object::pledge>,
-	                                 member<referendum_object,fc::uint128_t,&referendum_object::candidate_pledge>,
+	                                 member<referendum_object,fc::uint128_t,&referendum_object::miner_pledge>,
 	                                 member<object, object_id_type, &object::id>>,
 	                                 composite_key_compare<std::less<share_type>,std::less<fc::uint128_t>,std::greater<object_id_type>>>
    >
@@ -121,7 +121,7 @@ typedef generic_index<vote_result_object, vote_result_multi_index_container> vot
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::referendum_object, (graphene::chain::object),(proposer)
-                    (expiration_time)(review_period_time)(proposed_transaction)(pledge)(candidate_pledge)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(finished))
+                    (expiration_time)(review_period_time)(proposed_transaction)(pledge)(miner_pledge)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(finished))
 
 FC_REFLECT_DERIVED(graphene::chain::vote_object, (graphene::chain::object), (voter)
 	(expiration_time)(title)(options)(result)(finished))

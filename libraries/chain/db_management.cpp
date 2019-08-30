@@ -112,7 +112,7 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
 	  if (i >= undo_enable_num)
 		  _undo_db.set_max_size(1440);
 	  auto session=_undo_db.start_undo_session();
-      apply_block(*block, skip_candidate_signature |
+      apply_block(*block, skip_miner_signature |
                           skip_transaction_signatures |
                           skip_transaction_dupe_check |
                           skip_tapos_check |

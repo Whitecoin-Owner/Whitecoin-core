@@ -53,7 +53,7 @@ namespace graphene { namespace chain {
       /// Must not exceed the actual number of committee members voted for in @ref votes
       uint16_t num_committee = 0;
 	  // vaildate range is 0 - 50
-	  uint8_t  candidate_pledge_pay_back = 10;
+	  uint8_t  miner_pledge_pay_back = 10;
       /// This is the list of vote IDs this account votes for. The weight of these votes is determined by this
       /// account's balance of core asset.
       flat_set<vote_id_type> votes;
@@ -268,7 +268,7 @@ namespace graphene { namespace chain {
    * @ingroup operations
    *
    * This operation will declare the binding between tunnel account (on other chain) and link
-   * account on link chain. This binding will be seen by all the node then candidate or wallfacer can
+   * account on link chain. This binding will be seen by all the node then miner or wallfacer can
    * recognize the deposit from other chain to link chain.
    *
    * 
@@ -300,7 +300,7 @@ namespace graphene { namespace chain {
    * @ingroup operations
    *
    * This operation will declare the binding between tunnel account (on other chain) and link
-   * account on link chain. This binding will be seen by all the node then candidate or wallfacer can
+   * account on link chain. This binding will be seen by all the node then miner or wallfacer can
    * recognize the deposit from other chain to link chain.
    *
    * 
@@ -352,7 +352,7 @@ namespace graphene { namespace chain {
    * @ingroup operations
    *
    * This operation will declare the multi-signed account change.
-   * When enough signatures are collected by candidate this operation
+   * When enough signatures are collected by miner this operation
    * will be confirmed.
    *
    * Guard pay the fee.
@@ -453,7 +453,7 @@ namespace graphene { namespace chain {
 
 } } // graphene::chain
 
-FC_REFLECT(graphene::chain::account_options, (memo_key)(voting_account)(num_witness)(num_committee)(votes)(candidate_pledge_pay_back)(extensions))
+FC_REFLECT(graphene::chain::account_options, (memo_key)(voting_account)(num_witness)(num_committee)(votes)(miner_pledge_pay_back)(extensions))
 FC_REFLECT_ENUM( graphene::chain::account_whitelist_operation::account_listing,
                 (no_listing)(white_listed)(black_listed)(white_and_black_listed))
 

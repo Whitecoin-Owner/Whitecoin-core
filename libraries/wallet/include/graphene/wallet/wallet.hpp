@@ -346,7 +346,7 @@ struct wallet_data
    //    incomplete account regs
    map<string, address > pending_account_registrations;
    map<transaction_id_type, string>pending_account_updation;
-   map<string, string> pending_candidate_registrations;
+   map<string, string> pending_miner_registrations;
    map<address, transaction_id_type> pending_name_transfer;
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
@@ -1048,24 +1048,24 @@ class wallet_api
 		  string memo,
 		  bool broadcast = false);
 
-	  full_transaction lock_balance_to_candidate(string candidate_account,
+	  full_transaction lock_balance_to_miner(string miner_account,
 		  string lock_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  full_transaction lock_balance_to_candidates(string lock_account, 
+	  full_transaction lock_balance_to_miners(string lock_account, 
 		  map<string,vector<asset>> lockbalances,
 		  bool broadcast = false);
 	  full_transaction wallfacer_lock_balance(string wallfacer_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  full_transaction foreclose_balance_from_candidate(string candidate_account,
+	  full_transaction foreclose_balance_from_miner(string miner_account,
 		  string foreclose_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  full_transaction foreclose_balance_from_candidates(string foreclose_account, 
+	  full_transaction foreclose_balance_from_miners(string foreclose_account, 
 		  map<string, vector<asset>> foreclose_balances,
 		  bool broadcast = false);
 	  full_transaction wallfacer_foreclose_balance(string wallfacer_account,
@@ -1604,7 +1604,7 @@ class wallet_api
        * @param limit the maximum number of witnesss to return (max: 1000)
        * @returns a list of witnesss mapping witness names to witness ids
        */
-      map<string,candidate_id_type>       list_candidates(const string& lowerbound, uint32_t limit);
+      map<string,miner_id_type>       list_miners(const string& lowerbound, uint32_t limit);
 
       /** Lists all committee_members registered in the blockchain.
        * This returns a list of all account names that own committee_members, and the associated committee_member id,
@@ -1641,7 +1641,7 @@ class wallet_api
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
        */
-      candidate_object get_candidate(string owner_account);
+      miner_object get_miner(string owner_account);
 
       /** Returns information about the given committee_member.
        * @param owner_account the name or id of the committee_member account owner, or the id of the committee_member
@@ -1649,17 +1649,17 @@ class wallet_api
        */
       wallfacer_member_object get_wallfacer_member(string owner_account);
 
-      /** Creates a candidate object owned by the given account.
+      /** Creates a miner object owned by the given account.
        *
        * An account can have at most one witness object.
        *
        * @param owner_account the name or id of the account which is creating the witness
-       * @param url a URL to include in the candidate record in the blockchain.  Clients may
-       *            display this when showing a list of candidate.  May be blank.
+       * @param url a URL to include in the miner record in the blockchain.  Clients may
+       *            display this when showing a list of miner.  May be blank.
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a witness
        */
-      full_transaction create_candidate(string owner_account,
+      full_transaction create_miner(string owner_account,
                                         string url,
                                         bool broadcast = false);
 
@@ -1820,7 +1820,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote proxy settings
        */
-      full_transaction set_desired_candidate_and_wallfacer_member_count(string account_to_modify,
+      full_transaction set_desired_miner_and_wallfacer_member_count(string account_to_modify,
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
@@ -1921,8 +1921,8 @@ class wallet_api
          bool broadcast = false);
 	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 
-	  std::vector<wallfacer_lock_balance_object> get_wallfacer_lock_balance(const string& candidate)const;
-	  std::vector<lockbalance_object> get_candidate_lock_balance(const string& candidate)const;
+	  std::vector<wallfacer_lock_balance_object> get_wallfacer_lock_balance(const string& miner)const;
+	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
 	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
 	  wallfacer_member_object get_eth_signer(const string& symbol, const string& address);
       /** Approve or disapprove a proposal.
@@ -2085,7 +2085,7 @@ class wallet_api
 	  full_transaction wallfacer_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
 	  full_transaction proposal_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast = true);
 	  full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast = true);
-	  full_transaction candidate_referendum_for_wallfacer(const string& candidate, const string& amount,const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
+	  full_transaction miner_referendum_for_wallfacer(const string& miner, const string& amount,const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  full_transaction add_whiteOperation(const string& proposer,const address& addr, const fc::flat_set<int>& ops,int64_t expiration_time, bool broadcast = true);
 	  full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast = true);
@@ -2095,24 +2095,24 @@ class wallet_api
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
 	  map<public_key_type,address> create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
-	  map<account_id_type, vector<asset>> get_candidate_lockbalance_info(const string& account);
+	  map<account_id_type, vector<asset>> get_miner_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
 	public_key_type get_pubkey_from_account(const string& account);
 	  string sign_multisig_trx(const address& addr,const string& trx);
 	  signed_transaction decode_multisig_transaction(const string& trx);
 	variant_object  get_multisig_address(const address& addr);
-	full_transaction set_candidate_pledge_pay_back_rate(const string& candidate, int pledge_pay_back_rate, bool broadcast=true);
+	full_transaction set_miner_pledge_pay_back_rate(const string& miner, int pledge_pay_back_rate, bool broadcast=true);
 	full_transaction correct_chain_data(const string& payer, vector<address> addresses, bool broadcast=true);
 	fc::uint128_t get_pledge() const;
-	  flat_set< candidate_id_type> list_active_candidates();
+	  flat_set< miner_id_type> list_active_miners();
 	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
 	  fc::string get_first_contract_address();
 	  map<string, crosschain_prkeys> decrypt_coldkeys(const string& key, const string& file);
-      //candidate
-      void start_candidate(bool);
+      //miner
+      void start_miner(bool);
 
 	  void start_mining(const vector<string>& accts);
 
@@ -2169,7 +2169,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (extra_keys)
 			(mining_accounts)
 	        (pending_transactions)
-            (pending_account_registrations)(pending_candidate_registrations)
+            (pending_account_registrations)(pending_miner_registrations)
 			(pending_account_updation)
             (labeled_keys)
             (blind_receipts)
@@ -2271,13 +2271,13 @@ FC_REFLECT( graphene::wallet::operation_detail,
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_asset)) get_asset;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_asset_imp)) get_asset_imp;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_wallfacer_member)) create_wallfacer_member;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_candidate)) get_candidate;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_miner)) get_miner;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_wallfacer_member)) get_wallfacer_member;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_candidates)) list_candidates;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_miners)) list_miners;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_wallfacer_members)) list_wallfacer_members;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_all_wallfacers)) list_all_wallfacers;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_candidate)) create_candidate;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_desired_candidate_and_wallfacer_member_count)) set_desired_candidate_and_wallfacer_member_count;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_miner)) create_miner;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_desired_miner_and_wallfacer_member_count)) set_desired_miner_and_wallfacer_member_count;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account)) get_account;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::change_account_name)) change_account_name;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::remove_local_account)) remove_local_account;
@@ -2317,14 +2317,14 @@ FC_REFLECT( graphene::wallet::operation_detail,
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_addr)) get_account_addr;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_proposal)) get_proposal;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_proposal_for_voter)) get_proposal_for_voter;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock_balance_to_candidate)) lock_balance_to_candidate;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock_balance_to_miner)) lock_balance_to_miner;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallfacer_lock_balance)) wallfacer_lock_balance;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::foreclose_balance_from_candidate)) foreclose_balance_from_candidate;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::foreclose_balance_from_miner)) foreclose_balance_from_miner;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallfacer_foreclose_balance)) wallfacer_foreclose_balance;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_wallfacer_formal)) update_wallfacer_formal;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_lock_balance)) get_account_lock_balance;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_wallfacer_lock_balance)) get_wallfacer_lock_balance;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_candidate_lock_balance)) get_candidate_lock_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_miner_lock_balance)) get_miner_lock_balance;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::refund_request)) refund_request;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_cold_hot_uncreate_transaction)) cancel_cold_hot_uncreate_transaction;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_from_cold_to_hot)) transfer_from_cold_to_hot;
@@ -2412,12 +2412,12 @@ FC_REFLECT( graphene::wallet::operation_detail,
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallfacer_appointed_crosschain_fee)) wallfacer_appointed_crosschain_fee;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::remove_guarantee_id)) remove_guarantee_id;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::network_get_info)) network_get_info;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::start_candidate)) start_candidate;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::start_miner)) start_miner;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_crosschain_transaction)) get_account_crosschain_transaction;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::witness_node_stop)) witness_node_stop;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_bonus_balance)) get_bonus_balance;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallfacer_appointed_lockbalance_wallfacer)) wallfacer_appointed_lockbalance_wallfacer;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_candidate_lockbalance_info)) get_candidate_lockbalance_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_miner_lockbalance_info)) get_miner_lockbalance_info;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallfacer_cancel_publisher)) wallfacer_cancel_publisher;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallfacer_determine_withdraw_deposit)) wallfacer_determine_withdraw_deposit;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lightwallet_broadcast)) lightwallet_broadcast;
@@ -2430,12 +2430,12 @@ FC_REFLECT( graphene::wallet::operation_detail,
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_from_to_address)) transfer_from_to_address;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::combine_transaction)) combine_transaction;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multisig_address)) get_multisig_address;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_candidate_pledge_pay_back_rate)) set_candidate_pledge_pay_back_rate;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_active_candidates)) list_active_candidates;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_miner_pledge_pay_back_rate)) set_miner_pledge_pay_back_rate;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_active_miners)) list_active_miners;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::decode_multisig_transaction)) decode_multisig_transaction;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_pubkey_from_account)) get_pubkey_from_account;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_eth_signer)) get_eth_signer;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::candidate_referendum_for_wallfacer)) candidate_referendum_for_wallfacer;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::miner_referendum_for_wallfacer)) miner_referendum_for_wallfacer;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_referendum_for_voter)) get_referendum_for_voter;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::referendum_accelerate_pledge)) referendum_accelerate_pledge;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::approve_referendum)) approve_referendum;
@@ -2446,8 +2446,8 @@ FC_REFLECT( graphene::wallet::operation_detail,
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::ntp_update_time)) ntp_update_time;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_by_addr)) get_account_by_addr;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::start_mining)) start_mining;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::foreclose_balance_from_candidates)) foreclose_balance_from_candidates;
-			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock_balance_to_candidates)) lock_balance_to_candidates;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::foreclose_balance_from_miners)) foreclose_balance_from_miners;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock_balance_to_miners)) lock_balance_to_miners;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_eth_sign_transaction)) cancel_eth_sign_transaction;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::dump_brain_key_usage_info)) dump_brain_key_usage_info;
 			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_account_with_brain_key)) wallet_create_account_with_brain_key;
@@ -2557,19 +2557,19 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(create_wallfacer_member), create_wallfacer_member, &OtherType::create_wallfacer_member); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(get_candidate), get_candidate, &OtherType::get_candidate); }
+				v(BOOST_PP_STRINGIZE(get_miner), get_miner, &OtherType::get_miner); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_wallfacer_member), get_wallfacer_member, &OtherType::get_wallfacer_member); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(list_candidates), list_candidates, &OtherType::list_candidates); }
+				v(BOOST_PP_STRINGIZE(list_miners), list_miners, &OtherType::list_miners); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(list_wallfacer_members), list_wallfacer_members, &OtherType::list_wallfacer_members); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(list_all_wallfacers), list_all_wallfacers, &OtherType::list_all_wallfacers); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(create_candidate), create_candidate, &OtherType::create_candidate); }
+				v(BOOST_PP_STRINGIZE(create_miner), create_miner, &OtherType::create_miner); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(set_desired_candidate_and_wallfacer_member_count), set_desired_candidate_and_wallfacer_member_count, &OtherType::set_desired_candidate_and_wallfacer_member_count); }
+				v(BOOST_PP_STRINGIZE(set_desired_miner_and_wallfacer_member_count), set_desired_miner_and_wallfacer_member_count, &OtherType::set_desired_miner_and_wallfacer_member_count); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_account), get_account, &OtherType::get_account); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2649,11 +2649,11 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_proposal_for_voter), get_proposal_for_voter, &OtherType::get_proposal_for_voter); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(lock_balance_to_candidate), lock_balance_to_candidate, &OtherType::lock_balance_to_candidate); }
+				v(BOOST_PP_STRINGIZE(lock_balance_to_miner), lock_balance_to_miner, &OtherType::lock_balance_to_miner); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(wallfacer_lock_balance), wallfacer_lock_balance, &OtherType::wallfacer_lock_balance); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(foreclose_balance_from_candidate), foreclose_balance_from_candidate, &OtherType::foreclose_balance_from_candidate); }
+				v(BOOST_PP_STRINGIZE(foreclose_balance_from_miner), foreclose_balance_from_miner, &OtherType::foreclose_balance_from_miner); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(wallfacer_foreclose_balance), wallfacer_foreclose_balance, &OtherType::wallfacer_foreclose_balance); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2663,7 +2663,7 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_wallfacer_lock_balance), get_wallfacer_lock_balance, &OtherType::get_wallfacer_lock_balance); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(get_candidate_lock_balance), get_candidate_lock_balance, &OtherType::get_candidate_lock_balance); }
+				v(BOOST_PP_STRINGIZE(get_miner_lock_balance), get_miner_lock_balance, &OtherType::get_miner_lock_balance); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(refund_request), refund_request, &OtherType::refund_request); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2839,7 +2839,7 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(network_get_info), network_get_info, &OtherType::network_get_info); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(start_candidate), start_candidate, &OtherType::start_candidate); }
+				v(BOOST_PP_STRINGIZE(start_miner), start_miner, &OtherType::start_miner); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_account_crosschain_transaction), get_account_crosschain_transaction, &OtherType::get_account_crosschain_transaction); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2849,7 +2849,7 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(wallfacer_appointed_lockbalance_wallfacer), wallfacer_appointed_lockbalance_wallfacer, &OtherType::wallfacer_appointed_lockbalance_wallfacer); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(get_candidate_lockbalance_info), get_candidate_lockbalance_info, &OtherType::get_candidate_lockbalance_info); }
+				v(BOOST_PP_STRINGIZE(get_miner_lockbalance_info), get_miner_lockbalance_info, &OtherType::get_miner_lockbalance_info); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(wallfacer_cancel_publisher), wallfacer_cancel_publisher, &OtherType::wallfacer_cancel_publisher); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2875,9 +2875,9 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_multisig_address), get_multisig_address, &OtherType::get_multisig_address); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(set_candidate_pledge_pay_back_rate), set_candidate_pledge_pay_back_rate, &OtherType::set_candidate_pledge_pay_back_rate); }
+				v(BOOST_PP_STRINGIZE(set_miner_pledge_pay_back_rate), set_miner_pledge_pay_back_rate, &OtherType::set_miner_pledge_pay_back_rate); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(list_active_candidates), list_active_candidates, &OtherType::list_active_candidates); }
+				v(BOOST_PP_STRINGIZE(list_active_miners), list_active_miners, &OtherType::list_active_miners); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(decode_multisig_transaction), decode_multisig_transaction, &OtherType::decode_multisig_transaction); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2885,7 +2885,7 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_eth_signer), get_eth_signer, &OtherType::get_eth_signer); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(candidate_referendum_for_wallfacer), candidate_referendum_for_wallfacer, &OtherType::candidate_referendum_for_wallfacer); }
+				v(BOOST_PP_STRINGIZE(miner_referendum_for_wallfacer), miner_referendum_for_wallfacer, &OtherType::miner_referendum_for_wallfacer); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(get_referendum_for_voter), get_referendum_for_voter, &OtherType::get_referendum_for_voter); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2907,9 +2907,9 @@ FC_REFLECT( graphene::wallet::operation_detail,
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(start_mining), start_mining, &OtherType::start_mining); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(foreclose_balance_from_candidates), foreclose_balance_from_candidates, &OtherType::foreclose_balance_from_candidates); }
+				v(BOOST_PP_STRINGIZE(foreclose_balance_from_miners), foreclose_balance_from_miners, &OtherType::foreclose_balance_from_miners); }
 				{ typedef typename Visitor::other_type OtherType;
-				v(BOOST_PP_STRINGIZE(lock_balance_to_candidates), lock_balance_to_candidates, &OtherType::lock_balance_to_candidates); }
+				v(BOOST_PP_STRINGIZE(lock_balance_to_miners), lock_balance_to_miners, &OtherType::lock_balance_to_miners); }
 				{ typedef typename Visitor::other_type OtherType;
 				v(BOOST_PP_STRINGIZE(cancel_eth_sign_transaction), cancel_eth_sign_transaction, &OtherType::cancel_eth_sign_transaction); }
 				{ typedef typename Visitor::other_type OtherType;
@@ -2975,13 +2975,13 @@ FC_REFLECT( graphene::wallet::operation_detail,
 					v(BOOST_PP_STRINGIZE(get_asset), get_asset);
 					v(BOOST_PP_STRINGIZE(get_asset_imp), get_asset_imp);
 					v(BOOST_PP_STRINGIZE(create_wallfacer_member), create_wallfacer_member);
-					v(BOOST_PP_STRINGIZE(get_candidate), get_candidate);
+					v(BOOST_PP_STRINGIZE(get_miner), get_miner);
 					v(BOOST_PP_STRINGIZE(get_wallfacer_member), get_wallfacer_member);
-					v(BOOST_PP_STRINGIZE(list_candidates), list_candidates);
+					v(BOOST_PP_STRINGIZE(list_miners), list_miners);
 					v(BOOST_PP_STRINGIZE(list_wallfacer_members), list_wallfacer_members);
 					v(BOOST_PP_STRINGIZE(list_all_wallfacers), list_all_wallfacers);
-					v(BOOST_PP_STRINGIZE(create_candidate), create_candidate);
-					v(BOOST_PP_STRINGIZE(set_desired_candidate_and_wallfacer_member_count), set_desired_candidate_and_wallfacer_member_count);
+					v(BOOST_PP_STRINGIZE(create_miner), create_miner);
+					v(BOOST_PP_STRINGIZE(set_desired_miner_and_wallfacer_member_count), set_desired_miner_and_wallfacer_member_count);
 					v(BOOST_PP_STRINGIZE(get_account), get_account);
 					v(BOOST_PP_STRINGIZE(change_account_name), change_account_name);
 					v(BOOST_PP_STRINGIZE(remove_local_account), remove_local_account);
@@ -3021,14 +3021,14 @@ FC_REFLECT( graphene::wallet::operation_detail,
 					v(BOOST_PP_STRINGIZE(get_account_addr), get_account_addr);
 					v(BOOST_PP_STRINGIZE(get_proposal), get_proposal);
 					v(BOOST_PP_STRINGIZE(get_proposal_for_voter), get_proposal_for_voter);
-					v(BOOST_PP_STRINGIZE(lock_balance_to_candidate), lock_balance_to_candidate);
+					v(BOOST_PP_STRINGIZE(lock_balance_to_miner), lock_balance_to_miner);
 					v(BOOST_PP_STRINGIZE(wallfacer_lock_balance), wallfacer_lock_balance);
-					v(BOOST_PP_STRINGIZE(foreclose_balance_from_candidate), foreclose_balance_from_candidate);
+					v(BOOST_PP_STRINGIZE(foreclose_balance_from_miner), foreclose_balance_from_miner);
 					v(BOOST_PP_STRINGIZE(wallfacer_foreclose_balance), wallfacer_foreclose_balance);
 					v(BOOST_PP_STRINGIZE(update_wallfacer_formal), update_wallfacer_formal);
 					v(BOOST_PP_STRINGIZE(get_account_lock_balance), get_account_lock_balance);
 					v(BOOST_PP_STRINGIZE(get_wallfacer_lock_balance), get_wallfacer_lock_balance);
-					v(BOOST_PP_STRINGIZE(get_candidate_lock_balance), get_candidate_lock_balance);
+					v(BOOST_PP_STRINGIZE(get_miner_lock_balance), get_miner_lock_balance);
 					v(BOOST_PP_STRINGIZE(refund_request), refund_request);
 					v(BOOST_PP_STRINGIZE(cancel_cold_hot_uncreate_transaction), cancel_cold_hot_uncreate_transaction);
 					v(BOOST_PP_STRINGIZE(transfer_from_cold_to_hot), transfer_from_cold_to_hot);
@@ -3116,12 +3116,12 @@ FC_REFLECT( graphene::wallet::operation_detail,
 					v(BOOST_PP_STRINGIZE(wallfacer_appointed_crosschain_fee), wallfacer_appointed_crosschain_fee);
 					v(BOOST_PP_STRINGIZE(remove_guarantee_id), remove_guarantee_id);
 					v(BOOST_PP_STRINGIZE(network_get_info), network_get_info);
-					v(BOOST_PP_STRINGIZE(start_candidate), start_candidate);
+					v(BOOST_PP_STRINGIZE(start_miner), start_miner);
 					v(BOOST_PP_STRINGIZE(get_account_crosschain_transaction), get_account_crosschain_transaction);
 					v(BOOST_PP_STRINGIZE(witness_node_stop), witness_node_stop);
 					v(BOOST_PP_STRINGIZE(get_bonus_balance), get_bonus_balance);
 					v(BOOST_PP_STRINGIZE(wallfacer_appointed_lockbalance_wallfacer), wallfacer_appointed_lockbalance_wallfacer);
-					v(BOOST_PP_STRINGIZE(get_candidate_lockbalance_info), get_candidate_lockbalance_info);
+					v(BOOST_PP_STRINGIZE(get_miner_lockbalance_info), get_miner_lockbalance_info);
 					v(BOOST_PP_STRINGIZE(wallfacer_cancel_publisher), wallfacer_cancel_publisher);
 					v(BOOST_PP_STRINGIZE(wallfacer_determine_withdraw_deposit), wallfacer_determine_withdraw_deposit);
 					v(BOOST_PP_STRINGIZE(lightwallet_broadcast), lightwallet_broadcast);
@@ -3134,12 +3134,12 @@ FC_REFLECT( graphene::wallet::operation_detail,
 					v(BOOST_PP_STRINGIZE(transfer_from_to_address), transfer_from_to_address);
 					v(BOOST_PP_STRINGIZE(combine_transaction), combine_transaction);
 					v(BOOST_PP_STRINGIZE(get_multisig_address), get_multisig_address);
-					v(BOOST_PP_STRINGIZE(set_candidate_pledge_pay_back_rate), set_candidate_pledge_pay_back_rate);
-					v(BOOST_PP_STRINGIZE(list_active_candidates), list_active_candidates);
+					v(BOOST_PP_STRINGIZE(set_miner_pledge_pay_back_rate), set_miner_pledge_pay_back_rate);
+					v(BOOST_PP_STRINGIZE(list_active_miners), list_active_miners);
 					v(BOOST_PP_STRINGIZE(decode_multisig_transaction), decode_multisig_transaction);
 					v(BOOST_PP_STRINGIZE(get_pubkey_from_account), get_pubkey_from_account);
 					v(BOOST_PP_STRINGIZE(get_eth_signer), get_eth_signer);
-					v(BOOST_PP_STRINGIZE(candidate_referendum_for_wallfacer), candidate_referendum_for_wallfacer);
+					v(BOOST_PP_STRINGIZE(miner_referendum_for_wallfacer), miner_referendum_for_wallfacer);
 					v(BOOST_PP_STRINGIZE(get_referendum_for_voter), get_referendum_for_voter);
 					v(BOOST_PP_STRINGIZE(referendum_accelerate_pledge), referendum_accelerate_pledge);
 					v(BOOST_PP_STRINGIZE(approve_referendum), approve_referendum);
@@ -3150,8 +3150,8 @@ FC_REFLECT( graphene::wallet::operation_detail,
 					v(BOOST_PP_STRINGIZE(ntp_update_time), ntp_update_time);
 					v(BOOST_PP_STRINGIZE(get_account_by_addr), get_account_by_addr);
 					v(BOOST_PP_STRINGIZE(start_mining), start_mining);
-					v(BOOST_PP_STRINGIZE(foreclose_balance_from_candidates), foreclose_balance_from_candidates);
-					v(BOOST_PP_STRINGIZE(lock_balance_to_candidates), lock_balance_to_candidates);
+					v(BOOST_PP_STRINGIZE(foreclose_balance_from_miners), foreclose_balance_from_miners);
+					v(BOOST_PP_STRINGIZE(lock_balance_to_miners), lock_balance_to_miners);
 					v(BOOST_PP_STRINGIZE(cancel_eth_sign_transaction), cancel_eth_sign_transaction);
 					v(BOOST_PP_STRINGIZE(dump_brain_key_usage_info), dump_brain_key_usage_info);
 					v(BOOST_PP_STRINGIZE(wallet_create_account_with_brain_key), wallet_create_account_with_brain_key);
@@ -3199,13 +3199,13 @@ FC_API( graphene::wallet::wallet_api,
         (get_asset)
 	    (get_asset_imp)
         (create_wallfacer_member)
-        (get_candidate)
+        (get_miner)
         (get_wallfacer_member)
-        (list_candidates)
+        (list_miners)
         (list_wallfacer_members)
 	    (list_all_wallfacers)
-        (create_candidate)
-        (set_desired_candidate_and_wallfacer_member_count)
+        (create_miner)
+        (set_desired_miner_and_wallfacer_member_count)
         (get_account)
 		(change_account_name)
 	    (remove_local_account)
@@ -3241,12 +3241,12 @@ FC_API( graphene::wallet::wallet_api,
 		//(get_proposal)
 		(get_proposal_for_voter)
 		(wallfacer_lock_balance)
-		(foreclose_balance_from_candidate)
+		(foreclose_balance_from_miner)
 		(wallfacer_foreclose_balance)
 	    (update_wallfacer_formal)
 		(get_account_lock_balance)
 		(get_wallfacer_lock_balance)
-		(get_candidate_lock_balance)
+		(get_miner_lock_balance)
 		(refund_request)
 		(cancel_cold_hot_uncreate_transaction)
 		(transfer_from_cold_to_hot)
@@ -3333,12 +3333,12 @@ FC_API( graphene::wallet::wallet_api,
 		(wallfacer_appointed_crosschain_fee)
 	    (remove_guarantee_id)
 		(network_get_info)
-        (start_candidate)
+        (start_miner)
 		(get_account_crosschain_transaction)
         (witness_node_stop)
 		(get_bonus_balance)
 		(wallfacer_appointed_lockbalance_wallfacer)
-		(get_candidate_lockbalance_info)
+		(get_miner_lockbalance_info)
 		(wallfacer_cancel_publisher)
 		(wallfacer_determine_withdraw_deposit)
         (lightwallet_broadcast)
@@ -3351,12 +3351,12 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_from_to_address)
 		(combine_transaction)
 		(get_multisig_address)
-		(set_candidate_pledge_pay_back_rate)
-		(list_active_candidates)
+		(set_miner_pledge_pay_back_rate)
+		(list_active_miners)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
 		(get_eth_signer)
-		(candidate_referendum_for_wallfacer)
+		(miner_referendum_for_wallfacer)
 		(get_referendum_for_voter)
 		(referendum_accelerate_pledge)
 		(approve_referendum)
@@ -3365,9 +3365,9 @@ FC_API( graphene::wallet::wallet_api,
 		(decrypt_coldkeys)
 		(get_account_by_addr)
 		(start_mining)
-		(foreclose_balance_from_candidates)
-		(lock_balance_to_candidates)
-		(lock_balance_to_candidate)
+		(foreclose_balance_from_miners)
+		(lock_balance_to_miners)
+		(lock_balance_to_miner)
 		(cancel_eth_sign_transaction)
 		(wallet_create_account_with_brain_key)
 		(get_pending_transactions)

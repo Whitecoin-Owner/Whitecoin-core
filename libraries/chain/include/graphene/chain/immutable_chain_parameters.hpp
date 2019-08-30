@@ -35,7 +35,7 @@ struct immutable_chain_parameters
 {
    uint16_t min_wallfacer_count = GRAPHENE_DEFAULT_MIN_GUARDS;
    uint16_t max_wallfacer_count = GRAPHENE_DEFAULT_MAX_GUARDS;
-   uint16_t min_candidate_count = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
+   uint16_t min_miner_count = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
    uint32_t num_special_accounts = 0;
    uint32_t num_special_assets = 0;
 };
@@ -44,7 +44,7 @@ struct immutable_chain_parameters
 
 FC_REFLECT( graphene::chain::immutable_chain_parameters,
    (min_wallfacer_count)
-   (min_candidate_count)
+   (min_miner_count)
    (num_special_accounts)
    (num_special_assets)
 )

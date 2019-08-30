@@ -124,8 +124,8 @@ struct get_impacted_account_visitor
    void operator() (const eths_wallfacer_coldhot_change_signer_operation& op){}
    void operator()(const eth_cancel_coldhot_fail_trx_operaion& op) {}
    void operator()(const wallfacer_update_multi_account_operation& op) {}
-   void operator()(const candidate_generate_multi_asset_operation& op) {}
-   void operator() (const candidate_merge_signatures_operation& op) {}
+   void operator()(const miner_generate_multi_asset_operation& op) {}
+   void operator() (const miner_merge_signatures_operation& op) {}
    void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
    void operator()(const wallfacer_refund_balance_operation& op) {}
    void operator()(const wallfacer_refund_crosschain_trx_operation& op) {}
@@ -138,7 +138,7 @@ struct get_impacted_account_visitor
    void operator()(const wallfacer_determine_withdraw_deposit_operation& op) {}
    void operator()(const account_create_multisignature_address_operation& op) {}
    void operator()(const wallfacer_determine_block_payment_operation& op) {}
-   void operator()(const candidate_referendum_wallfacer_operation& op) {}
+   void operator()(const miner_referendum_wallfacer_operation& op) {}
    void operator() (const coldhot_cancel_combined_trx_operaion & op) {}
    void operator() (const wallfacer_cancel_combine_trx_operation & op) {}
    void operator() (const wallfacer_pass_success_trx_operation & op) {}
@@ -146,9 +146,9 @@ struct get_impacted_account_visitor
    void operator() (const wallfacer_change_eth_gas_price_operation& op) {}
    void operator() (const eths_cancel_unsigned_transaction_operation & op) {}
    void operator() (const wallfacer_change_acquire_trx_operation& op) {}
-   void operator()( const candidate_create_operation& op )
+   void operator()( const miner_create_operation& op )
    {
-      _impacted.insert( op.candidate_account );
+      _impacted.insert( op.miner_account );
    }
    void operator()( const witness_update_operation& op )
    {
@@ -322,10 +322,10 @@ void get_relevant_accounts( const object* obj, flat_set<account_id_type>& accoun
            assert( aobj != nullptr );
            accounts.insert( aobj->wallfacer_member_account );
            break;
-        } case candidate_object_type:{
-           const auto& aobj = dynamic_cast<const candidate_object*>(obj);
+        } case miner_object_type:{
+           const auto& aobj = dynamic_cast<const miner_object*>(obj);
            assert( aobj != nullptr );
-           accounts.insert( aobj->candidate_account );
+           accounts.insert( aobj->miner_account );
            break;
         } case limit_order_object_type:{
            const auto& aobj = dynamic_cast<const limit_order_object*>(obj);

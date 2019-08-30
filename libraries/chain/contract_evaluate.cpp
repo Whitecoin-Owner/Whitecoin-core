@@ -1531,7 +1531,7 @@ namespace graphene {
 				 FC_ASSERT(graphene::chain::address::is_valid(addr_str));
 				 const auto& account_idx = get_db().get_index_type<account_index>().indices();
 				 const auto& wallfacer_idx = get_db().get_index_type<wallfacer_member_index>().indices();
-				 const auto& candidate_idx = get_db().get_index_type<candidate_index>().indices();
+				 const auto& miner_idx = get_db().get_index_type<miner_index>().indices();
 				 auto itr = account_idx.get<by_address>().find(address(addr_str));
 				 if (itr == account_idx.get<by_address>().end())
 				 {
@@ -1540,9 +1540,9 @@ namespace graphene {
 				 auto itr_wallfacer = wallfacer_idx.get<by_account>().find(itr->get_id());
 				 if (itr_wallfacer != wallfacer_idx.get<by_account>().end() && itr_wallfacer->formal == true)
 					 return "wallfacer";
-				 auto itr_candidate = candidate_idx.get<by_account>().find(itr->get_id());
-				 if (itr_candidate != candidate_idx.get<by_account>().end())
-					 return "candidate";
+				 auto itr_miner = miner_idx.get<by_account>().find(itr->get_id());
+				 if (itr_miner != miner_idx.get<by_account>().end())
+					 return "miner";
 				 return "address";
 			 }
 			 catch (...)

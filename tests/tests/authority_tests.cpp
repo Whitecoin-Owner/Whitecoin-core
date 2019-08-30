@@ -669,22 +669,22 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 	{
 		wallfacer.push_back(get_account("wallfacer" + fc::to_string(i)));
 	}
-	const auto& candidates = db.get_index_type<candidate_index>().indices();
+	const auto& miners = db.get_index_type<miner_index>().indices();
 	const auto& wallfacers = db.get_index_type<wallfacer_member_index>().indices();
 	auto& bal_idx = db.get_index_type<balance_index>();
 	const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
 	//subscribe_to_item(addr);
 	const auto& itr = by_owner_idx.find(boost::make_tuple(account_id_type()(db).addr, asset_id_type()));
-	for (auto one_candidate : candidates)
+	for (auto one_miner : miners)
 	{
-		candidate_id_type temp = one_candidate.id;
-		db.modify(db.get(temp), [&](candidate_object& obj) {
+		miner_id_type temp = one_miner.id;
+		db.modify(db.get(temp), [&](miner_object& obj) {
 			
 			obj.lockbalance_total["LNK"] = asset(100);
 
 		});
 
-		db.adjust_lock_balance(one_candidate.id, one_candidate.candidate_account,asset(100));
+		db.adjust_lock_balance(one_miner.id, one_miner.miner_account,asset(100));
 		db.modify(*itr, [&](balance_object& obj) {
 			obj.adjust_balance(asset(-100), db.head_block_time());
 		});
@@ -754,13 +754,13 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 	}
 	
 	//generate_block();
-	const auto& new_candidates = db.get_index_type<candidate_index>().indices();
+	const auto& new_miners = db.get_index_type<miner_index>().indices();
 	const auto& new_wallfacers = db.get_index_type<wallfacer_member_index>().indices();
 	uint64_t total_use = 0;
-	for (auto one_candidate : new_candidates)
+	for (auto one_miner : new_miners)
 	{
-		printf("candidate balance:%d\n", one_candidate.lockbalance_total["LNK"].amount.value);
-		total_use += 100-one_candidate.lockbalance_total["LNK"].amount.value;
+		printf("miner balance:%d\n", one_miner.lockbalance_total["LNK"].amount.value);
+		total_use += 100-one_miner.lockbalance_total["LNK"].amount.value;
 
 	}
 	for (auto one_wallfacer : new_wallfacers)

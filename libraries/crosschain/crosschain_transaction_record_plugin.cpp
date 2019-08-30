@@ -352,19 +352,19 @@ namespace graphene {
 		void crosschain_record_plugin::plugin_initialize(const boost::program_options::variables_map& options){
 			try{
 				_options = &options;
-				LOAD_VALUE_SET(options, "candidate-id", _candidates, chain::candidate_id_type);
+				LOAD_VALUE_SET(options, "miner-id", _miners, chain::miner_id_type);
 				LOAD_VALUE_SET(options, "wallfacer-id", _wallfacer, chain::wallfacer_member_id_type)
 			}FC_LOG_AND_RETHROW()
 		}
 		void crosschain_record_plugin::plugin_startup(){
 			try {
-				if (!_candidates.empty() || !_wallfacer.empty()) {
+				if (!_miners.empty() || !_wallfacer.empty()) {
 					started = true;
 					auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
 					fut.wait();
 				}
 				else {
-					elog("No candidate or wallfacer in this client");
+					elog("No miner or wallfacer in this client");
 				}
 			}FC_CAPTURE_AND_RETHROW()
 		}

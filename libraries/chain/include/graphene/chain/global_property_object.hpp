@@ -51,7 +51,7 @@ namespace graphene { namespace chain {
 
          uint32_t                           next_available_vote_id = 0;
          vector<wallfacer_member_id_type>   active_committee_members; // updated once per maintenance interval
-         flat_set<candidate_id_type>          active_witnesses; // updated once per maintenance interval
+         flat_set<miner_id_type>          active_witnesses; // updated once per maintenance interval
 		 vector<wallfacer_member_id_type> pledge_insufficient_committee_members; // updated once per maintenance interval 
 		 std::map<uint32_t, uint32_t> unorder_blocks_match;
 
@@ -76,15 +76,15 @@ namespace graphene { namespace chain {
          uint32_t          head_block_number = 0;
          block_id_type     head_block_id;
          time_point_sec    time;
-         candidate_id_type   current_witness;
+         miner_id_type   current_witness;
          time_point_sec    next_maintenance_time;
          time_point_sec    last_budget_time;
-         share_type        candidate_budget;
+         share_type        miner_budget;
          uint32_t          accounts_registered_this_interval = 0;
 		 optional<SecretHashType>      current_random_seed;
-		 std::map<candidate_id_type,std::vector<lockbalance_object>> current_round_lockbalance_cache;
+		 std::map<miner_id_type,std::vector<lockbalance_object>> current_round_lockbalance_cache;
 		 std::map<asset_id_type, price_feed>  current_price_feed;
-		 fc::flat_set<candidate_id_type>          round_produced_candidates;
+		 fc::flat_set<miner_id_type>          round_produced_miners;
 		 share_type       contract_transfer_fee_rate = 0;
 
          /**
@@ -155,7 +155,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
                     (current_witness)
                     (next_maintenance_time)
                     (last_budget_time)
-                    (candidate_budget)
+                    (miner_budget)
                     (accounts_registered_this_interval)
 					(current_random_seed)
                     (recently_missed_count)
@@ -165,7 +165,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
                     (last_irreversible_block_num)
 					(current_round_lockbalance_cache)
 					(current_price_feed)
-	                (round_produced_candidates)
+	                (round_produced_miners)
 	                (bonus_distribute_limit)
 					(contract_transfer_fee_rate)
  	                (referendum_flag)

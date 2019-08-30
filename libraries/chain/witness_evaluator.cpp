@@ -32,37 +32,37 @@
 
 namespace graphene { namespace chain {
 
-void_result candidate_create_evaluator::do_evaluate( const candidate_create_operation& op )
+void_result miner_create_evaluator::do_evaluate( const miner_create_operation& op )
 { try {
-	auto candidate_obj = db().get(op.candidate_account);
-	FC_ASSERT(candidate_obj.addr == op.candidate_address, "the address is not correct");
+	auto miner_obj = db().get(op.miner_account);
+	FC_ASSERT(miner_obj.addr == op.miner_address, "the address is not correct");
 	//account cannot be a wallfacer
     auto & iter = db().get_index_type<wallfacer_member_index>().indices().get<by_account>();
-    FC_ASSERT(iter.find(op.candidate_account) == iter.end(),"account cannot be a wallfacer.");
+    FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a wallfacer.");
    
-    auto & iter_candidate = db().get_index_type<candidate_index>().indices().get<by_account>();
-    FC_ASSERT(iter_candidate.find(op.candidate_account) == iter_candidate.end(),"the account has beeen a candidate.");
+    auto & iter_miner = db().get_index_type<miner_index>().indices().get<by_account>();
+    FC_ASSERT(iter_miner.find(op.miner_account) == iter_miner.end(),"the account has beeen a miner.");
 
     return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
-object_id_type candidate_create_evaluator::do_apply( const candidate_create_operation& op )
+object_id_type miner_create_evaluator::do_apply( const miner_create_operation& op )
 { try {
    vote_id_type vote_id;
    db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
       vote_id = get_next_vote_id(p, vote_id_type::witness);
    });
 
-   const auto& new_candidate_object = db().create<candidate_object>( [&]( candidate_object& obj ){
-         obj.candidate_account  = op.candidate_account;
+   const auto& new_miner_object = db().create<miner_object>( [&]( miner_object& obj ){
+         obj.miner_account  = op.miner_account;
          obj.signing_key      = op.block_signing_key;
          obj.vote_id          = vote_id;
          obj.url              = op.url;
    });
-   return new_candidate_object.id;
+   return new_miner_object.id;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
-void candidate_create_evaluator::pay_fee()
+void miner_create_evaluator::pay_fee()
 {
 	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
 	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
@@ -73,7 +73,7 @@ void candidate_create_evaluator::pay_fee()
 
 void_result witness_update_evaluator::do_evaluate( const witness_update_operation& op )
 { try {
-   FC_ASSERT(db().get(op.witness).candidate_account == op.witness_account);
+   FC_ASSERT(db().get(op.witness).miner_account == op.witness_account);
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
@@ -82,7 +82,7 @@ void_result witness_update_evaluator::do_apply( const witness_update_operation& 
    database& _db = db();
    _db.modify(
       _db.get(op.witness),
-      [&]( candidate_object& wit )
+      [&]( miner_object& wit )
       {
          if( op.new_url.valid() )
             wit.url = *op.new_url;
@@ -94,17 +94,17 @@ void_result witness_update_evaluator::do_apply( const witness_update_operation& 
       });
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
-void_result candidate_generate_multi_asset_evaluator::do_evaluate(const candidate_generate_multi_asset_operation& o)
+void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_generate_multi_asset_operation& o)
 {
 	try {
-		//FC_ASSERT(db().get(o.candidate).candidate_account == o.candidate);
-		//need to check the status of candidate...
-		const auto& candidates = db().get_index_type<candidate_index>().indices().get<by_id>();
-		auto candidate = candidates.find(o.candidate);
-		FC_ASSERT(candidate != candidates.end());
+		//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
+		const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+		auto miner = miners.find(o.miner);
+		FC_ASSERT(miner != miners.end());
 		const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
-		const auto acct = accounts.find(candidate->candidate_account);
-		FC_ASSERT(acct->addr == o.candidate_address);
+		const auto acct = accounts.find(miner->miner_account);
+		FC_ASSERT(acct->addr == o.miner_address);
 		const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
 		FC_ASSERT(assets.find(o.chain_type) != assets.end());
 		std::string symbol = o.chain_type;
@@ -143,8 +143,8 @@ void_result candidate_generate_multi_asset_evaluator::do_evaluate(const candidat
 			fc::async([crosschain_interface, import_contract_address] {crosschain_interface->create_multi_sig_account("import_contract_addr", import_contract_address, 0); });
 		}
 		else {
-			//FC_ASSERT(db().get(o.candidate).candidate_account == o.candidate);
-		//need to check the status of candidate...
+			//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
 			
 		//if the multi-addr correct or not.
 		vector<string> symbol_addrs_cold;
@@ -195,7 +195,7 @@ void_result candidate_generate_multi_asset_evaluator::do_evaluate(const candidat
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
-void_result candidate_generate_multi_asset_evaluator::do_apply(const candidate_generate_multi_asset_operation& o)
+void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_multi_asset_operation& o)
 {
 	try
 	{
@@ -257,22 +257,22 @@ void_result candidate_generate_multi_asset_evaluator::do_apply(const candidate_g
 		}
 		if ((o.chain_type == "ETH") || (o.chain_type.find("ERC") != o.chain_type.npos)) {
 			FC_ASSERT(trx_state->_trx != nullptr);
-			db().adjust_eths_multi_account_record(transaction_id_type(o.multi_redeemScript_hot), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<candidate_generate_multi_asset_operation>::value));
+			db().adjust_eths_multi_account_record(transaction_id_type(o.multi_redeemScript_hot), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<miner_generate_multi_asset_operation>::value));
 		}
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
-void_result candidate_merge_signatures_evaluator::do_evaluate(const candidate_merge_signatures_operation& o)
+void_result miner_merge_signatures_evaluator::do_evaluate(const miner_merge_signatures_operation& o)
 {
 	try {
-		//FC_ASSERT(db().get(o.candidate).candidate_account == o.candidate);
-		//need to check the status of candidate...
-		const auto& candidates = db().get_index_type<candidate_index>().indices().get<by_id>();
-		auto candidate = candidates.find(o.candidate);
-		FC_ASSERT(candidate != candidates.end());
+		//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
+		const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+		auto miner = miners.find(o.miner);
+		FC_ASSERT(miner != miners.end());
 		const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
-		const auto acct = accounts.find(candidate->candidate_account);
-		FC_ASSERT(acct->addr == o.candidate_address);
+		const auto acct = accounts.find(miner->miner_account);
+		FC_ASSERT(acct->addr == o.miner_address);
 		const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
 		FC_ASSERT(assets.find(o.chain_type) != assets.end());
 		//TODO
@@ -283,7 +283,7 @@ void_result candidate_merge_signatures_evaluator::do_evaluate(const candidate_me
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
-void_result candidate_merge_signatures_evaluator::do_apply(const candidate_merge_signatures_operation& o)
+void_result miner_merge_signatures_evaluator::do_apply(const miner_merge_signatures_operation& o)
 {
 	try {
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();

@@ -49,8 +49,8 @@ genesis_state_type make_genesis() {
    genesis_state.initial_timestamp = time_point_sec( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
 
    auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-   genesis_state.initial_active_candidates = 10;
-   for( int i = 0; i < genesis_state.initial_active_candidates; ++i )
+   genesis_state.initial_active_miners = 10;
+   for( int i = 0; i < genesis_state.initial_active_miners; ++i )
    {
       auto name = "init"+fc::to_string(i);
       genesis_state.initial_accounts.emplace_back(name,
@@ -59,8 +59,8 @@ genesis_state_type make_genesis() {
                                                   true);
       graphene::chain::genesis_state_type::initial_committee_member_type test_gaurd;
       test_gaurd.owner_name=name;
-      genesis_state.initial_wallfacer_candidates.push_back(test_gaurd);
-      genesis_state.initial_candidate_candidates.push_back({name, init_account_priv_key.get_public_key()});
+      genesis_state.initial_wallfacer_miners.push_back(test_gaurd);
+      genesis_state.initial_miner_miners.push_back({name, init_account_priv_key.get_public_key()});
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
    return genesis_state;
@@ -72,8 +72,8 @@ genesis_state_type make_genesis_30() {
 	genesis_state.initial_timestamp = time_point_sec(GRAPHENE_TESTING_GENESIS_TIMESTAMP);
 
 	auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-	genesis_state.initial_active_candidates = 30;
-	for (int i = 0; i < genesis_state.initial_active_candidates; ++i)
+	genesis_state.initial_active_miners = 30;
+	for (int i = 0; i < genesis_state.initial_active_miners; ++i)
 	{
 		auto name = "init" + fc::to_string(i);
 		genesis_state.initial_accounts.emplace_back(name,
@@ -83,8 +83,8 @@ genesis_state_type make_genesis_30() {
       
 		  graphene::chain::genesis_state_type::initial_committee_member_type test_gaurd;
       test_gaurd.owner_name=name;
-      genesis_state.initial_wallfacer_candidates.push_back(test_gaurd);
-		genesis_state.initial_candidate_candidates.push_back({ name, init_account_priv_key.get_public_key() });
+      genesis_state.initial_wallfacer_miners.push_back(test_gaurd);
+		genesis_state.initial_miner_miners.push_back({ name, init_account_priv_key.get_public_key() });
 	}
 	genesis_state.initial_parameters.current_fees->zero_all_fees();
 	return genesis_state;
@@ -108,25 +108,25 @@ BOOST_AUTO_TEST_CASE( block_database_test )
       for( uint32_t i = 0; i < 5; ++i )
       {
          if( i > 0 ) b.previous = b.id();
-         b.candidate = candidate_id_type(i+1);
+         b.miner = miner_id_type(i+1);
          bdb.store( b.id(), b );
 
          auto fetch = bdb.fetch_by_number( b.block_num() );
          FC_ASSERT( fetch.valid() );
-         FC_ASSERT( fetch->candidate ==  b.candidate );
+         FC_ASSERT( fetch->miner ==  b.miner );
          fetch = bdb.fetch_by_number( i+1 );
          FC_ASSERT( fetch.valid() );
-         FC_ASSERT( fetch->candidate ==  b.candidate );
+         FC_ASSERT( fetch->miner ==  b.miner );
          fetch = bdb.fetch_optional( b.id() );
          FC_ASSERT( fetch.valid() );
-         FC_ASSERT( fetch->candidate ==  b.candidate );
+         FC_ASSERT( fetch->miner ==  b.miner );
       }
 
       for( uint32_t i = 1; i < 5; ++i )
       {
          auto blk = bdb.fetch_by_number( i );
          FC_ASSERT( blk.valid() );
-         FC_ASSERT( blk->candidate == candidate_id_type(blk->block_num()) );
+         FC_ASSERT( blk->miner == miner_id_type(blk->block_num()) );
       }
 
       auto last = bdb.last();
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE( block_database_test )
       {
          auto blk = bdb.fetch_by_number( i+1 );
          FC_ASSERT( blk.valid() );
-         FC_ASSERT( blk->candidate == candidate_id_type(blk->block_num()) );
+         FC_ASSERT( blk->miner == miner_id_type(blk->block_num()) );
       }
 
    } catch (fc::exception& e) {
@@ -158,14 +158,14 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 	fc::temp_directory data_dir(graphene::utilities::temp_directory_path());
 	db.open(data_dir.path(), make_genesis);
 
-	vector< candidate_id_type > current_shuffled_candidates;
-	current_shuffled_candidates.clear();
+	vector< miner_id_type > current_shuffled_miners;
+	current_shuffled_miners.clear();
 	const global_property_object& gpo = db.get_global_properties();
 	const auto& dgp = db.get_dynamic_global_properties();
 	int test_count = 10;
-	current_shuffled_candidates.reserve(test_count);
+	current_shuffled_miners.reserve(test_count);
 	vector< boost::multiprecision::uint256_t > temp_witnesses_weight;
-	vector<candidate_id_type> temp_active_witnesses;
+	vector<miner_id_type> temp_active_witnesses;
 	boost::multiprecision::uint256_t total_weight = 0;
 	auto caluate_slot = [&](vector<boost::multiprecision::uint256_t> vec, int count, boost::multiprecision::uint256_t value) {
 		boost::multiprecision::uint256_t init = 0;
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 		return count - 1;
 
 	};
-	for (const candidate_id_type& w : gpo.active_witnesses)
+	for (const miner_id_type& w : gpo.active_witnesses)
 	{
 		const auto& witness_obj = w(db);
 		auto temp_hi = boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi);
@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 		}
 		boost::multiprecision::uint256_t j = (r % total_weight);
 		int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
-		current_shuffled_candidates.push_back(temp_active_witnesses[slot]);
+		current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 		total_weight -= temp_witnesses_weight[slot];
 		std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1-i]);
 		std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1-i]);
@@ -216,9 +216,9 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 	}
 	vector<string> result_vec = { "init0","init5", "init2", "init3", "init1", "init7", "init9", "init4" , "init8" , "init6" };
 	int j = 0;
-	for (auto w : current_shuffled_candidates)
+	for (auto w : current_shuffled_miners)
 	{
-		const auto& account_obj = w(db).candidate_account(db);
+		const auto& account_obj = w(db).miner_account(db);
 		printf("witness_name:%s\n", account_obj.name.c_str());
 		BOOST_CHECK(account_obj.name == result_vec[j++]);
 	}
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(generate_empty_blocks_random_test_diff_weight)
 		fc::time_point_sec now(GRAPHENE_TESTING_GENESIS_TIMESTAMP);
 		fc::temp_directory data_dir(graphene::utilities::temp_directory_path());
 		signed_block b;
-		std::map<candidate_id_type, int> details;
+		std::map<miner_id_type, int> details;
 		// TODO:  Don't generate this here
 		auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
 		signed_block cutoff_block;
@@ -243,25 +243,25 @@ BOOST_AUTO_TEST_CASE(generate_empty_blocks_random_test_diff_weight)
 			database db;
 			db.open(data_dir.path(), make_genesis_30);
 			auto gpo = db.get_global_properties();
-			auto& all_candidate_object = db.get_index_type<candidate_index>().indices();
+			auto& all_miner_object = db.get_index_type<miner_index>().indices();
 			int step = 0;
-			for (const candidate_object& wit : all_candidate_object)
+			for (const miner_object& wit : all_miner_object)
 			{
 				++step;
-				db.modify(wit, [&](candidate_object& obj) {
+				db.modify(wit, [&](miner_object& obj) {
 					obj.pledge_weight = obj.pledge_weight * step;
 				});
 			}
 				
-			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
 
 			// TODO:  Change this test when we correct #406
 			// n.b. we generate GRAPHENE_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
 			for (uint32_t i = 1; ; ++i)
 			{
 				BOOST_CHECK(db.head_block_id() == b.id());
-				//candidate_id_type prev_witness = b.witness;
-				candidate_id_type cur_witness = db.get_scheduled_candidate(1);
+				//miner_id_type prev_witness = b.witness;
+				miner_id_type cur_witness = db.get_scheduled_miner(1);
 				if (details.count(cur_witness) == 0)
 				{
 					details[cur_witness] = 1;
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(generate_empty_blocks_random_test_diff_weight)
 				}
 				//BOOST_CHECK( cur_witness != prev_witness );
 				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
-				BOOST_CHECK(b.candidate == cur_witness);
+				BOOST_CHECK(b.miner == cur_witness);
 				uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
 				if (cutoff_height >= 2000)
 				{
@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE(generate_empty_blocks_random_test_diff_weight)
 
 			for (auto iter = details.begin(); iter != details.end(); ++iter)
 			{
-				const auto& account_obj = iter->first(db).candidate_account(db);
+				const auto& account_obj = iter->first(db).miner_account(db);
 				printf("witness_name:%s,appear count:%d\n", account_obj.name.c_str(), iter->second);
 			}
 
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
       fc::time_point_sec now( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
       fc::temp_directory data_dir( graphene::utilities::temp_directory_path() );
       signed_block b;
-	  std::map<candidate_id_type, int> details;
+	  std::map<miner_id_type, int> details;
       // TODO:  Don't generate this here
       auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")) );
       signed_block cutoff_block;
@@ -312,15 +312,15 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
          database db;
          db.open(data_dir.path(), make_genesis_30);
 		 int count = db.get_global_properties().active_witnesses.size();
-         b = db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+         b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
 
          // TODO:  Change this test when we correct #406
          // n.b. we generate GRAPHENE_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
          for( uint32_t i = 1; ; ++i )
          {
             BOOST_CHECK( db.head_block_id() == b.id() );
-            //candidate_id_type prev_witness = b.witness;
-            candidate_id_type cur_witness = db.get_scheduled_candidate(1);
+            //miner_id_type prev_witness = b.witness;
+            miner_id_type cur_witness = db.get_scheduled_miner(1);
 			if (details.count(cur_witness) == 0)
 			{
 				details[cur_witness] = 1;
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
 			}
             //BOOST_CHECK( cur_witness != prev_witness );
             b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
-            BOOST_CHECK( b.candidate == cur_witness );
+            BOOST_CHECK( b.miner == cur_witness );
             uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
             if( cutoff_height >= 2000 )
             {
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
          
 		 for (auto iter = details.begin();iter!=details.end();++iter)
 		 {
-			 const auto& account_obj = iter->first(db).candidate_account(db);
+			 const auto& account_obj = iter->first(db).miner_account(db);
 			 printf("witness_name:%s,appear count:%d\n", account_obj.name.c_str(), iter->second);
 		 }
 
@@ -369,19 +369,19 @@ BOOST_AUTO_TEST_CASE(generate_empty_blocks)
 		{
 			database db;
 			db.open(data_dir.path(), make_genesis);
-			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
 
 			// TODO:  Change this test when we correct #406
 			// n.b. we generate GRAPHENE_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
 			for (uint32_t i = 1; ; ++i)
 			{
 				BOOST_CHECK(db.head_block_id() == b.id());
-				//candidate_id_type prev_witness = b.witness;
-				candidate_id_type cur_witness = db.get_scheduled_candidate(1);
+				//miner_id_type prev_witness = b.witness;
+				miner_id_type cur_witness = db.get_scheduled_miner(1);
 				//printf("witness_name:%s\n", cur_witness(db).witness_account(db).name.c_str());
 				//BOOST_CHECK( cur_witness != prev_witness );
 				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
-				BOOST_CHECK(b.candidate == cur_witness);
+				BOOST_CHECK(b.miner == cur_witness);
 				uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
 				if (cutoff_height >= 200)
 				{
@@ -399,8 +399,8 @@ BOOST_AUTO_TEST_CASE(generate_empty_blocks)
 			for (uint32_t i = 0; i < 200; ++i)
 			{
 				BOOST_CHECK(db.head_block_id() == b.id());
-				//candidate_id_type prev_witness = b.witness;
-				candidate_id_type cur_witness = db.get_scheduled_candidate(1);
+				//miner_id_type prev_witness = b.witness;
+				miner_id_type cur_witness = db.get_scheduled_miner(1);
 				//BOOST_CHECK( cur_witness != prev_witness );
 				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
 			}
@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE( undo_block )
          {
             now = db.get_slot_time(1);
             time_stack.push_back( now );
-            auto b = db.generate_block( now, db.get_scheduled_candidate( 1 ), init_account_priv_key, database::skip_nothing );
+            auto b = db.generate_block( now, db.get_scheduled_miner( 1 ), init_account_priv_key, database::skip_nothing );
          }
          BOOST_CHECK( db.head_block_num() == 5 );
          BOOST_CHECK( db.head_block_time() == now );
@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE( undo_block )
          {
             now = db.get_slot_time(1);
             time_stack.push_back( now );
-            auto b = db.generate_block( now, db.get_scheduled_candidate( 1 ), init_account_priv_key, database::skip_nothing );
+            auto b = db.generate_block( now, db.get_scheduled_miner( 1 ), init_account_priv_key, database::skip_nothing );
          }
          BOOST_CHECK( db.head_block_num() == 7 );
       }
@@ -480,20 +480,20 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
       auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")) );
       for( uint32_t i = 0; i < 10; ++i )
       {
-         auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+         auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
          try {
             PUSH_BLOCK( db2, b );
          } FC_CAPTURE_AND_RETHROW( ("db2") );
       }
       for( uint32_t i = 10; i < 13; ++i )
       {
-         auto b =  db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+         auto b =  db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
       }
       string db1_tip = db1.head_block_id().str();
       uint32_t next_slot = 3;
       for( uint32_t i = 13; i < 16; ++i )
       {
-         auto b =  db2.generate_block(db2.get_slot_time(next_slot), db2.get_scheduled_candidate(next_slot), init_account_priv_key, database::skip_nothing);
+         auto b =  db2.generate_block(db2.get_slot_time(next_slot), db2.get_scheduled_miner(next_slot), init_account_priv_key, database::skip_nothing);
          next_slot = 1;
          // notify both databases of the new block.
          // only db2 should switch to the new fork, db1 should not
@@ -508,7 +508,7 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
       BOOST_CHECK_EQUAL(db1.head_block_num(), 13);
       BOOST_CHECK_EQUAL(db2.head_block_num(), 13);
       {
-         auto b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+         auto b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
          good_block = b;
          b.transactions.emplace_back(signed_transaction());
          b.transactions.back().operations.emplace_back(transfer_operation());
@@ -570,18 +570,18 @@ BOOST_AUTO_TEST_CASE( out_of_order_blocks )
       BOOST_CHECK( db1.get_chain_id() == db2.get_chain_id() );
 
       auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")) );
-      auto b1 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b2 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b3 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b4 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b5 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b6 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b7 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b8 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b9 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b10 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b11 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
-      auto b12 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+      auto b1 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b2 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b3 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b4 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b5 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b6 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b7 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b8 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b9 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b10 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b11 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+      auto b12 = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
       BOOST_CHECK_EQUAL(db1.head_block_num(), 12);
       BOOST_CHECK_EQUAL(db2.head_block_num(), 0);
       PUSH_BLOCK( db2, b1 );
@@ -633,7 +633,7 @@ BOOST_AUTO_TEST_CASE( undo_pending )
             trx.operations.push_back(t);
             PUSH_TX( db, trx, ~0 );
 
-            auto b = db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, ~0);
+            auto b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, ~0);
          }
 
          signed_transaction trx;
@@ -648,7 +648,7 @@ BOOST_AUTO_TEST_CASE( undo_pending )
          //sign( trx,  init_account_priv_key  );
          PUSH_TX( db, trx );
 
-         auto b = db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+         auto b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
 
          BOOST_CHECK(nathan_id(db).name == "nathan");
 
@@ -706,14 +706,14 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       // db2 : B C D
 
       auto aw = db1.get_global_properties().active_witnesses;
-      auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+      auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
 
       BOOST_CHECK(nathan_id(db1).name == "nathan");
 
-      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
       db1.push_block(b);
       aw = db2.get_global_properties().active_witnesses;
-      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
       db1.push_block(b);
       GRAPHENE_REQUIRE_THROW(nathan_id(db2), fc::exception);
       nathan_id(db1); /// it should be included in the pending state
@@ -723,7 +723,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       PUSH_TX( db2, trx );
 
       aw = db2.get_global_properties().active_witnesses;
-      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
       db1.push_block(b);
 
       BOOST_CHECK(nathan_id(db1).name == "nathan");
@@ -773,7 +773,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       GRAPHENE_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
 
-      auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_candidate( 1 ), init_account_priv_key, skip_sigs );
+      auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_miner( 1 ), init_account_priv_key, skip_sigs );
       PUSH_BLOCK( db2, b, skip_sigs );
 
       GRAPHENE_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
@@ -799,7 +799,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       public_key_type init_account_pub_key  = init_account_priv_key.get_public_key();
       const graphene::db::index& account_idx = db1.get_index(protocol_ids, account_object_type);
 
-      auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_candidate( 1 ), init_account_priv_key, database::skip_nothing);
+      auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_miner( 1 ), init_account_priv_key, database::skip_nothing);
 
       signed_transaction trx;
       //This transaction must be in the next block after its reference, or it is invalid.
@@ -815,7 +815,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       trx.operations.push_back(cop);
       trx.sign( init_account_priv_key, db1.get_chain_id() );
       db1.push_transaction(trx);
-      b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_candidate(1), init_account_priv_key, database::skip_nothing);
+      b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
       trx.clear();
 
       transfer_operation t;
@@ -1114,7 +1114,7 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, database_fixture )
    try
    {
       uint32_t skip_flags = (
-           database::skip_candidate_signature
+           database::skip_miner_signature
          | database::skip_transaction_signatures
          | database::skip_authority_check
          );
@@ -1183,98 +1183,98 @@ BOOST_FIXTURE_TEST_CASE( rsf_missed_blocks, database_fixture )
          "1111111111111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), GRAPHENE_100_PERCENT );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), GRAPHENE_100_PERCENT );
 
       generate_block( ~0, init_account_priv_key, 1 );
       BOOST_CHECK_EQUAL( rsf(),
          "0111111111111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(127) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(127) );
 
       generate_block( ~0, init_account_priv_key, 1 );
       BOOST_CHECK_EQUAL( rsf(),
          "0101111111111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(126) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(126) );
 
       generate_block( ~0, init_account_priv_key, 2 );
       BOOST_CHECK_EQUAL( rsf(),
          "0010101111111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(124) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(124) );
 
       generate_block( ~0, init_account_priv_key, 3 );
       BOOST_CHECK_EQUAL( rsf(),
          "0001001010111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(121) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(121) );
 
       generate_block( ~0, init_account_priv_key, 5 );
       BOOST_CHECK_EQUAL( rsf(),
          "0000010001001010111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(116) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(116) );
 
       generate_block( ~0, init_account_priv_key, 8 );
       BOOST_CHECK_EQUAL( rsf(),
          "0000000010000010001001010111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(108) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(108) );
 
       generate_block( ~0, init_account_priv_key, 13 );
       BOOST_CHECK_EQUAL( rsf(),
          "0000000000000100000000100000100010010101111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(95) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(95) );
 
       generate_block();
       BOOST_CHECK_EQUAL( rsf(),
          "1000000000000010000000010000010001001010111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(95) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(95) );
 
       generate_block();
       BOOST_CHECK_EQUAL( rsf(),
          "1100000000000001000000001000001000100101011111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(95) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(95) );
 
       generate_block();
       BOOST_CHECK_EQUAL( rsf(),
          "1110000000000000100000000100000100010010101111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(95) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(95) );
 
       generate_block();
       BOOST_CHECK_EQUAL( rsf(),
          "1111000000000000010000000010000010001001010111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(95) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(95) );
 
       generate_block( ~0, init_account_priv_key, 64 );
       BOOST_CHECK_EQUAL( rsf(),
          "0000000000000000000000000000000000000000000000000000000000000000"
          "1111100000000000001000000001000001000100101011111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(31) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(31) );
 
       generate_block( ~0, init_account_priv_key, 32 );
       BOOST_CHECK_EQUAL( rsf(),
          "0000000000000000000000000000000010000000000000000000000000000000"
          "0000000000000000000000000000000001111100000000000001000000001000"
       );
-      BOOST_CHECK_EQUAL( db.candidate_participation_rate(), pct(8) );
+      BOOST_CHECK_EQUAL( db.miner_participation_rate(), pct(8) );
    }
    FC_LOG_AND_RETHROW()
 }
@@ -1287,7 +1287,7 @@ BOOST_FIXTURE_TEST_CASE( transaction_invalidated_in_cache, database_fixture )
 
       auto generate_block = [&]( database& d, uint32_t skip ) -> signed_block
       {
-         return d.generate_block(d.get_slot_time(1), d.get_scheduled_candidate(1), init_account_priv_key, skip);
+         return d.generate_block(d.get_slot_time(1), d.get_scheduled_miner(1), init_account_priv_key, skip);
       };
 
       // tx's created by ACTORS() have bogus authority, so we need to
@@ -1303,7 +1303,7 @@ BOOST_FIXTURE_TEST_CASE( transaction_invalidated_in_cache, database_fixture )
       while( db2.head_block_num() < db.head_block_num() )
       {
          optional< signed_block > b = db.fetch_block_by_number( db2.head_block_num()+1 );
-         db2.push_block(*b, database::skip_candidate_signature);
+         db2.push_block(*b, database::skip_miner_signature);
       }
       BOOST_CHECK( db2.get( alice_id ).name == "alice" );
       BOOST_CHECK( db2.get( bob_id ).name == "bob" );

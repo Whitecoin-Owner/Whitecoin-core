@@ -8,13 +8,13 @@ namespace graphene {
 
 		void_result eth_series_multi_sol_create_evaluator::do_evaluate(const eth_series_multi_sol_create_operation& o) {
 			try {
-				//validate candidate
-				const auto& candidates = db().get_index_type<candidate_index>().indices().get<by_id>();
-				auto candidate = candidates.find(o.candidate_broadcast);
-				FC_ASSERT(candidate != candidates.end());
+				//validate miner
+				const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+				auto miner = miners.find(o.miner_broadcast);
+				FC_ASSERT(miner != miners.end());
 				const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
-				const auto acct = accounts.find(candidate->candidate_account);
-				FC_ASSERT(acct->addr == o.candidate_broadcast_addrss);
+				const auto acct = accounts.find(miner->miner_account);
+				FC_ASSERT(acct->addr == o.miner_broadcast_addrss);
 
 				const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
 				FC_ASSERT(assets.find(o.chain_type) != assets.end());
@@ -393,12 +393,12 @@ namespace graphene {
 
 		}
 		void_result eth_multi_account_create_record_evaluator::do_evaluate(const eth_multi_account_create_record_operation& o) {
-			const auto& candidates = db().get_index_type<candidate_index>().indices().get<by_id>();
-			auto candidate = candidates.find(o.candidate_broadcast);
-			FC_ASSERT(candidate != candidates.end());
+			const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+			auto miner = miners.find(o.miner_broadcast);
+			FC_ASSERT(miner != miners.end());
 			const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
-			const auto acct = accounts.find(candidate->candidate_account);
-			FC_ASSERT(acct->addr == o.candidate_address);
+			const auto acct = accounts.find(miner->miner_account);
+			FC_ASSERT(acct->addr == o.miner_address);
 			const auto& multi_account_create_db = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_mulaccount_trx_id>();
 			auto multi_account_create_sign_iter = multi_account_create_db.find(o.pre_trx_id);
 			FC_ASSERT(multi_account_create_sign_iter != multi_account_create_db.end());

@@ -27,13 +27,13 @@
 
 namespace graphene { namespace chain {
 
-   class candidate_create_evaluator : public evaluator<candidate_create_evaluator>
+   class miner_create_evaluator : public evaluator<miner_create_evaluator>
    {
       public:
-         typedef candidate_create_operation operation_type;
+         typedef miner_create_operation operation_type;
 
-         void_result do_evaluate( const candidate_create_operation& o );
-         object_id_type do_apply( const candidate_create_operation& o );
+         void_result do_evaluate( const miner_create_operation& o );
+         object_id_type do_apply( const miner_create_operation& o );
 		 void pay_fee() override;
    };
 
@@ -46,20 +46,20 @@ namespace graphene { namespace chain {
          void_result do_apply( const witness_update_operation& o );
    };
 
-   class candidate_generate_multi_asset_evaluator : public evaluator<candidate_generate_multi_asset_evaluator>
+   class miner_generate_multi_asset_evaluator : public evaluator<miner_generate_multi_asset_evaluator>
    {
    public:
-	   typedef candidate_generate_multi_asset_operation operation_type;
-	   void_result do_evaluate(const candidate_generate_multi_asset_operation& o);
-	   void_result do_apply(const candidate_generate_multi_asset_operation& o);
+	   typedef miner_generate_multi_asset_operation operation_type;
+	   void_result do_evaluate(const miner_generate_multi_asset_operation& o);
+	   void_result do_apply(const miner_generate_multi_asset_operation& o);
    };
 
-   class candidate_merge_signatures_evaluator : public evaluator<candidate_merge_signatures_evaluator>
+   class miner_merge_signatures_evaluator : public evaluator<miner_merge_signatures_evaluator>
    {
    public:
-	   typedef candidate_merge_signatures_operation operation_type;
-	   void_result do_evaluate(const candidate_merge_signatures_operation& o);
-	   void_result do_apply(const candidate_merge_signatures_operation& o);
+	   typedef miner_merge_signatures_operation operation_type;
+	   void_result do_evaluate(const miner_merge_signatures_operation& o);
+	   void_result do_apply(const miner_merge_signatures_operation& o);
    };
 
 } } // graphene::chain

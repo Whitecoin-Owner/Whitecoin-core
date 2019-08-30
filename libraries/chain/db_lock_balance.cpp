@@ -13,15 +13,15 @@
 namespace graphene {
 	namespace chain {
 
-		asset database::get_lock_balance(account_id_type owner, candidate_id_type candidate, asset_id_type asset_id) const{
+		asset database::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id) const{
 			try {
-				auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_candidate_asset>();
-				auto itr = index.find(boost::make_tuple(candidate, owner, asset_id));
+				auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
+				auto itr = index.find(boost::make_tuple(miner, owner, asset_id));
 				if (itr != index.end()) {
 					return itr->get_lock_balance();
 				}
 				return asset();
-			}FC_CAPTURE_AND_RETHROW((owner)(candidate)(asset_id))
+			}FC_CAPTURE_AND_RETHROW((owner)(miner)(asset_id))
 		}
 
 		vector<lockbalance_object> database::get_lock_balance(account_id_type owner, asset_id_type asset_id) const {
@@ -73,18 +73,18 @@ namespace graphene {
 				}
 			}FC_CAPTURE_AND_RETHROW((wallfacer_account)(delta))
 		}
-		void database::adjust_lock_balance(candidate_id_type candidate_account, account_id_type lock_account,asset delta){
+		void database::adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account,asset delta){
 			try {
 				if (delta.amount == 0) {
 					return;
 				}
-				auto& by_owner_idx = get_index_type<lockbalance_index>().indices().get<by_lock_candidate_asset>();
-				auto itr = by_owner_idx.find(boost::make_tuple(candidate_account, lock_account, delta.asset_id));
+				auto& by_owner_idx = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
+				auto itr = by_owner_idx.find(boost::make_tuple(miner_account, lock_account, delta.asset_id));
 				//fc::time_point_sec now = head_block_time();
 				if (itr == by_owner_idx.end()){
 					FC_ASSERT(delta.amount > 0, "lock balance error");
-					create<lockbalance_object>([candidate_account, lock_account, delta](lockbalance_object& a) {
-						a.lockto_candidate_account = candidate_account;
+					create<lockbalance_object>([miner_account, lock_account, delta](lockbalance_object& a) {
+						a.lockto_miner_account = miner_account;
 						a.lock_balance_account = lock_account;
 						//address lock_balance_contract_addr;
 						a.lock_asset_id = delta.asset_id;
@@ -98,7 +98,7 @@ namespace graphene {
 					if ((asset(itr->lock_asset_amount, itr->lock_asset_id) + delta).amount == 0)
 						remove(*itr);
 					else{
-						modify(*itr, [candidate_account, lock_account, delta](lockbalance_object& b) {
+						modify(*itr, [miner_account, lock_account, delta](lockbalance_object& b) {
 							b.lock_asset_amount += delta.amount;
 						});
 					}
@@ -107,7 +107,7 @@ namespace graphene {
 				if (head_block_num() >= LOCKBALANCE_CORRECT)
 				{ 
 					const auto& asset_obj = get(delta.asset_id);
-					modify(get(candidate_account), [&](candidate_object& b) {
+					modify(get(miner_account), [&](miner_object& b) {
 						auto map_lockbalance_total = b.lockbalance_total.find(asset_obj.symbol);
 						if (map_lockbalance_total != b.lockbalance_total.end()) {
 							map_lockbalance_total->second += delta;
@@ -118,7 +118,7 @@ namespace graphene {
 					});
 				}
 				
-			}FC_CAPTURE_AND_RETHROW((candidate_account)(lock_account)(delta))
+			}FC_CAPTURE_AND_RETHROW((miner_account)(lock_account)(delta))
 		}
 	}
 }

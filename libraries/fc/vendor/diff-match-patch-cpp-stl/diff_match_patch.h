@@ -1163,7 +1163,7 @@ class diff_match_patch {
           pre_del = post_del;
           lastequality = (*cur_diff).text;
         } else {
-          // Not a candidate, and can never become one.
+          // Not a miner, and can never become one.
           equalities.clear();
           lastequality.clear();
         }

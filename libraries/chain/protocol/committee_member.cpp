@@ -55,7 +55,7 @@ void chain::wallfacer_member_resign_operation::validate() const
     FC_ASSERT(fee.amount >= 0);
 }
 
-void candidate_referendum_wallfacer_operation::validate()const
+void miner_referendum_wallfacer_operation::validate()const
 {
 	FC_ASSERT(fee.amount >=0);
 	FC_ASSERT(replace_queue.size() >0 && replace_queue.size() <=3);

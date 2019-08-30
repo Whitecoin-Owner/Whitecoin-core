@@ -600,7 +600,7 @@ class diff_match_patch_test : diff_match_patch<string> {
     dmp.Diff_Timeout = 0.1f;  // 100ms
     // This test may 'fail' on extremely fast computers.  If so, just increase the text lengths.
     string_t a = "`Twas brillig, and the slithy toves\nDid gyre and gimble in the wabe:\nAll mimsy were the borogoves,\nAnd the mome raths outgrabe.\n";
-    string_t b = "I am the very model of a modern major general,\nI've information vegetable, animal, and candidateal,\nI know the kings of England, and I quote the fights historical,\nFrom Marathon to Waterloo, in order categorical.\n";
+    string_t b = "I am the very model of a modern major general,\nI've information vegetable, animal, and mineral,\nI know the kings of England, and I quote the fights historical,\nFrom Marathon to Waterloo, in order categorical.\n";
     // Increase the text lengths by 1024 times to ensure a timeout.
     for (int x = 0; x < 10; x++) {
       a = a + a;

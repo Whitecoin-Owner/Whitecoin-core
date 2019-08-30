@@ -118,10 +118,10 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<market_trade>               get_trade_history( const string& base, const string& quote, fc::time_point_sec start, fc::time_point_sec stop, unsigned limit = 100 )const;
 
       // Witnesses
-      vector<optional<candidate_object>> get_candidates(const vector<candidate_id_type>& witness_ids)const;
-      fc::optional<candidate_object> get_candidate_by_account(account_id_type account)const;
-      map<string, candidate_id_type> lookup_candidate_accounts(const string& lower_bound_name, uint32_t limit)const;
-      uint64_t get_candidate_count()const;
+      vector<optional<miner_object>> get_miners(const vector<miner_id_type>& witness_ids)const;
+      fc::optional<miner_object> get_miner_by_account(account_id_type account)const;
+      map<string, miner_id_type> lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const;
+      uint64_t get_miner_count()const;
 
       // Committee members
       vector<optional<wallfacer_member_object>> get_wallfacer_members(const vector<wallfacer_member_id_type>& committee_member_ids)const;
@@ -152,7 +152,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  //Lock balance
 	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
 	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
-	  vector<lockbalance_object> get_candidate_lock_balance(const candidate_id_type& candidate) const;
+	  vector<lockbalance_object> get_miner_lock_balance(const miner_id_type& miner) const;
 	  vector<optional<account_binding_object>> get_binding_account(const string& account, const string& symbol) const;
 	  vector<wallfacer_lock_balance_object> get_wallfacer_lock_balance(const wallfacer_member_id_type& id)const;
 	  vector<wallfacer_lock_balance_object> get_wallfacer_asset_lock_balance(const asset_id_type& id)const;
@@ -188,8 +188,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
-	  map<account_id_type, vector<asset>> get_candidate_lockbalance_info(const candidate_id_type& id) const;
-	  vector<candidate_id_type> list_scheduled_candidates() const;
+	  map<account_id_type, vector<asset>> get_miner_lockbalance_info(const miner_id_type& id) const;
+	  vector<miner_id_type> list_scheduled_miners() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 	  fc::uint128 get_pledge() const;
    //private:
@@ -637,13 +637,13 @@ optional<multisig_account_pair_object> database_api_impl::lookup_multisig_accoun
 	return optional < multisig_account_pair_object>();
 }
 
-map<account_id_type, vector<asset>> database_api_impl::get_candidate_lockbalance_info(const candidate_id_type& id) const
+map<account_id_type, vector<asset>> database_api_impl::get_miner_lockbalance_info(const miner_id_type& id) const
 {
 	map<account_id_type, vector<asset>> result;
-	const auto& index = _db.get_index_type<lockbalance_index>().indices().get<by_lock_candidate_asset>();
+	const auto& index = _db.get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
 	auto range = index.equal_range(boost::make_tuple(id));
 	for (auto localbalance_obj : boost::make_iterator_range(range.first, range.second)) {
-		if (localbalance_obj.lockto_candidate_account != id)
+		if (localbalance_obj.lockto_miner_account != id)
 			continue;
 		if (result.count(localbalance_obj.lock_balance_account) == 0)
 		{
@@ -1890,9 +1890,9 @@ vector<market_trade> database_api_impl::get_trade_history( const string& base,
 //                                                                  //
 //////////////////////////////////////////////////////////////////////
 
-vector<optional<candidate_object>> database_api::get_candidates(const vector<candidate_id_type>& witness_ids)const
+vector<optional<miner_object>> database_api::get_miners(const vector<miner_id_type>& witness_ids)const
 {
-   return my->get_candidates( witness_ids );
+   return my->get_miners( witness_ids );
 }
 
 vector<worker_object> database_api::get_workers_by_account(account_id_type account)const
@@ -1911,11 +1911,11 @@ vector<worker_object> database_api::get_workers_by_account(account_id_type accou
 }
 
 
-vector<optional<candidate_object>> database_api_impl::get_candidates(const vector<candidate_id_type>& witness_ids)const
+vector<optional<miner_object>> database_api_impl::get_miners(const vector<miner_id_type>& witness_ids)const
 {
-   vector<optional<candidate_object>> result; result.reserve(witness_ids.size());
+   vector<optional<miner_object>> result; result.reserve(witness_ids.size());
    std::transform(witness_ids.begin(), witness_ids.end(), std::back_inserter(result),
-                  [this](candidate_id_type id) -> optional<candidate_object> {
+                  [this](miner_id_type id) -> optional<miner_object> {
       if(auto o = _db.find(id))
          return *o;
       return {};
@@ -1923,23 +1923,23 @@ vector<optional<candidate_object>> database_api_impl::get_candidates(const vecto
    return result;
 }
 
-fc::optional<candidate_object> database_api::get_candidate_by_account(account_id_type account)const
+fc::optional<miner_object> database_api::get_miner_by_account(account_id_type account)const
 {
-   return my->get_candidate_by_account( account );
+   return my->get_miner_by_account( account );
 }
 
-candidate_object database_api::get_candidate(const string& owner_account) const
+miner_object database_api::get_miner(const string& owner_account) const
 {
     try
     {
-        fc::optional<candidate_id_type> candidate_id = maybe_id<candidate_id_type>(owner_account);
-        if (candidate_id)
+        fc::optional<miner_id_type> miner_id = maybe_id<miner_id_type>(owner_account);
+        if (miner_id)
         {
-            std::vector<candidate_id_type> ids_to_get;
-            ids_to_get.push_back(*candidate_id);
-            std::vector<fc::optional<candidate_object>> candidate_objects = get_candidates(ids_to_get);
-            if (candidate_objects.front())
-                return *candidate_objects.front();
+            std::vector<miner_id_type> ids_to_get;
+            ids_to_get.push_back(*miner_id);
+            std::vector<fc::optional<miner_object>> miner_objects = get_miners(ids_to_get);
+            if (miner_objects.front())
+                return *miner_objects.front();
             FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
         }
         else
@@ -1948,7 +1948,7 @@ candidate_object database_api::get_candidate(const string& owner_account) const
             try
             {
                 account_id_type owner_account_id = get_account_id(owner_account);
-                fc::optional<candidate_object> witness = get_candidate_by_account(owner_account_id);
+                fc::optional<miner_object> witness = get_miner_by_account(owner_account_id);
                 if (witness)
                     return *witness;
                 else
@@ -1962,74 +1962,74 @@ candidate_object database_api::get_candidate(const string& owner_account) const
     }
     FC_CAPTURE_AND_RETHROW((owner_account))
 }
-fc::optional<candidate_object> database_api_impl::get_candidate_by_account(account_id_type account) const
+fc::optional<miner_object> database_api_impl::get_miner_by_account(account_id_type account) const
 {
-   const auto& idx = _db.get_index_type<candidate_index>().indices().get<by_account>();
+   const auto& idx = _db.get_index_type<miner_index>().indices().get<by_account>();
    auto itr = idx.find(account);
    if( itr != idx.end() )
       return *itr;
    return {};
 }
 
-map<string, candidate_id_type> database_api::lookup_candidate_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, miner_id_type> database_api::lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const
 {
-   return my->lookup_candidate_accounts( lower_bound_name, limit );
+   return my->lookup_miner_accounts( lower_bound_name, limit );
 }
 
-map<string, candidate_id_type> database_api_impl::lookup_candidate_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, miner_id_type> database_api_impl::lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const
 {
    FC_ASSERT( limit <= 1000 );
-   const auto& witnesses_by_id = _db.get_index_type<candidate_index>().indices().get<by_id>();
+   const auto& witnesses_by_id = _db.get_index_type<miner_index>().indices().get<by_id>();
 
    // we want to order witnesses by account name, but that name is in the account object
-   // so the candidate_index doesn't have a quick way to access it.
+   // so the miner_index doesn't have a quick way to access it.
    // get all the names and look them all up, sort them, then figure out what
    // records to return.  This could be optimized, but we expect the
    // number of witnesses to be few and the frequency of calls to be rare
-   std::map<std::string, candidate_id_type> candidates_by_account_name;
-   for (const candidate_object& candidate : witnesses_by_id)
-       if (auto account_iter = _db.find(candidate.candidate_account))
+   std::map<std::string, miner_id_type> miners_by_account_name;
+   for (const miner_object& miner : witnesses_by_id)
+       if (auto account_iter = _db.find(miner.miner_account))
            if (account_iter->name >= lower_bound_name) // we can ignore anything below lower_bound_name
-               candidates_by_account_name.insert(std::make_pair(account_iter->name, candidate.id));
+               miners_by_account_name.insert(std::make_pair(account_iter->name, miner.id));
 
-   auto end_iter = candidates_by_account_name.begin();
-   while (end_iter != candidates_by_account_name.end() && limit--)
+   auto end_iter = miners_by_account_name.begin();
+   while (end_iter != miners_by_account_name.end() && limit--)
        ++end_iter;
-   candidates_by_account_name.erase(end_iter, candidates_by_account_name.end());
-   return candidates_by_account_name;
+   miners_by_account_name.erase(end_iter, miners_by_account_name.end());
+   return miners_by_account_name;
 }
 
-vector<candidate_id_type> database_api::list_scheduled_candidates() const 
+vector<miner_id_type> database_api::list_scheduled_miners() const 
 {
-	return my->list_scheduled_candidates();
+	return my->list_scheduled_miners();
 }
 
-vector<candidate_id_type> database_api_impl::list_scheduled_candidates() const
+vector<miner_id_type> database_api_impl::list_scheduled_miners() const
 {
 	const witness_schedule_object& wso = witness_schedule_id_type()(_db);
-	return wso.current_shuffled_candidates;
+	return wso.current_shuffled_miners;
 
 }
 
 fc::uint128_t database_api_impl::get_pledge()const
 {
 	fc::uint128_t result = 0;
-	const auto& candidate_ids = _db.get_index_type<candidate_index>().indices().get<by_id>();
-	for (const auto& id : candidate_ids)
+	const auto& miner_ids = _db.get_index_type<miner_index>().indices().get<by_id>();
+	for (const auto& id : miner_ids)
 	{
 		result += id.pledge_weight;
 	}
 	return result;
 }
 
-uint64_t database_api::get_candidate_count()const
+uint64_t database_api::get_miner_count()const
 {
-   return my->get_candidate_count();
+   return my->get_miner_count();
 }
 
-uint64_t database_api_impl::get_candidate_count()const
+uint64_t database_api_impl::get_miner_count()const
 {
-   return _db.get_index_type<candidate_index>().indices().size();
+   return _db.get_index_type<miner_index>().indices().size();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2294,7 +2294,7 @@ vector<variant> database_api_impl::lookup_vote_ids( const vector<vote_id_type>& 
 {
    FC_ASSERT( votes.size() < 1000, "Only 1000 votes can be queried at a time" );
 
-   const auto& witness_idx = _db.get_index_type<candidate_index>().indices().get<by_vote_id>();
+   const auto& witness_idx = _db.get_index_type<miner_index>().indices().get<by_vote_id>();
    const auto& committee_idx = _db.get_index_type<wallfacer_member_index>().indices().get<by_vote_id>();
    const auto& for_worker_idx = _db.get_index_type<worker_index>().indices().get<by_vote_for>();
    const auto& against_worker_idx = _db.get_index_type<worker_index>().indices().get<by_vote_against>();
@@ -2738,8 +2738,8 @@ vector<lockbalance_object> database_api::get_account_lock_balance(const account_
 vector<lockbalance_object> database_api::get_asset_lock_balance(const asset_id_type& asset) const {
 	return my->get_asset_lock_balance(asset);
 }
-vector<lockbalance_object> database_api::get_candidate_lock_balance(const candidate_id_type& candidate) const {
-	return my->get_candidate_lock_balance(candidate);
+vector<lockbalance_object> database_api::get_miner_lock_balance(const miner_id_type& miner) const {
+	return my->get_miner_lock_balance(miner);
 }
 
 optional<whiteOperationList_object> database_api::get_whiteOperation(const address& addr) const {
@@ -2768,12 +2768,12 @@ vector<lockbalance_object> database_api_impl::get_asset_lock_balance(const asset
 	});
 	return result;
 }
-vector<lockbalance_object> database_api_impl::get_candidate_lock_balance(const candidate_id_type& candidate) const{
+vector<lockbalance_object> database_api_impl::get_miner_lock_balance(const miner_id_type& miner) const{
 	const auto& lb_index = _db.get_index_type<lockbalance_index>();
 	vector<lockbalance_object> result;
 	lb_index.inspect_all_objects([&](const object& obj) {
 		const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
-		if (p.lockto_candidate_account == candidate) {
+		if (p.lockto_miner_account == miner) {
 			result.emplace_back(p);
 		}
 	});
@@ -2833,9 +2833,9 @@ optional<multisig_account_pair_object> database_api::get_current_multisig_accoun
 	return result;
 }
 
-map<account_id_type, vector<asset>> database_api::get_candidate_lockbalance_info(const candidate_id_type& id) const
+map<account_id_type, vector<asset>> database_api::get_miner_lockbalance_info(const miner_id_type& id) const
 {
-	return my->get_candidate_lockbalance_info(id);
+	return my->get_miner_lockbalance_info(id);
 }
 
 optional<contract_storage_object> database_api::get_contract_storage(const address& contract_address, const string& storage_name) const
@@ -3162,9 +3162,9 @@ variant_object database_api::decoderawtransaction(const string& raw_trx, const s
 
     }FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))
 }
-share_type database_api::get_candidate_pay_per_block(uint32_t block_num) const
+share_type database_api::get_miner_pay_per_block(uint32_t block_num) const
 {
-	return my->_db.get_candidate_pay_per_block(block_num);
+	return my->_db.get_miner_pay_per_block(block_num);
 }
 vector<optional<crosschain_trx_object>> database_api::get_crosschain_transaction_by_blocknum(const string& symbol,
 	const string& account,
@@ -3352,8 +3352,8 @@ vector<vote_result_object> database_api_impl::get_vote_result_objs(const vote_ob
 
 vector<vote_object> database_api_impl::get_votes_by_addr(const address& addr) const {
 	vector<vote_object> result;
-	const auto candidate_obj = _db.get_candidate_obj(addr);
-	FC_ASSERT(candidate_obj.valid());
+	const auto miner_obj = _db.get_miner_obj(addr);
+	FC_ASSERT(miner_obj.valid());
 	const auto& vote_idx = _db.get_index_type<vote_index>().indices().get<by_state>();
 	const auto range = vote_idx.equal_range(false);
 	std::for_each(range.first, range.second, [&result](const vote_object& obj ) {
@@ -3367,9 +3367,9 @@ std::map<std::string, asset> database_api_impl::get_pay_back_balances(const addr
 	std::map<string, asset> results;
 	FC_ASSERT(payback_db.first != payback_db.second, "pay back owner doesnt exist");
 	for (auto payback_address_iter : boost::make_iterator_range(payback_db.first, payback_db.second)) {
-		const auto& candidate_obj = _db.get(payback_address_iter.candidate_id);
-		const auto& candidate_acc = _db.get(candidate_obj.candidate_account);
-		results[candidate_acc.name] = payback_address_iter.one_owner_balance;
+		const auto& miner_obj = _db.get(payback_address_iter.miner_id);
+		const auto& miner_acc = _db.get(miner_obj.miner_account);
+		results[miner_acc.name] = payback_address_iter.one_owner_balance;
 	}
 	return results;
 }

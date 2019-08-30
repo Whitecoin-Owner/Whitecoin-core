@@ -33,15 +33,15 @@
 
 #include <iostream>
 
-using namespace graphene::debug_candidate_plugin;
+using namespace graphene::debug_miner_plugin;
 using std::string;
 using std::vector;
 
 namespace bpo = boost::program_options;
 
-debug_candidate_plugin::~debug_candidate_plugin() {}
+debug_miner_plugin::~debug_miner_plugin() {}
 
-void debug_candidate_plugin::plugin_set_program_options(
+void debug_miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& command_line_options,
    boost::program_options::options_description& config_file_options)
 {
@@ -51,7 +51,7 @@ void debug_candidate_plugin::plugin_set_program_options(
 	(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
 	for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
 	{
-		auto name = "candidate" + fc::to_string(i);
+		auto name = "miner" + fc::to_string(i);
 		auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 		vec.push_back
 		(std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
@@ -71,14 +71,14 @@ void debug_candidate_plugin::plugin_set_program_options(
    config_file_options.add(command_line_options);
 }
 
-std::string debug_candidate_plugin::plugin_name()const
+std::string debug_miner_plugin::plugin_name()const
 {
-   return "debug_candidate";
+   return "debug_miner";
 }
 
-void debug_candidate_plugin::plugin_initialize(const boost::program_options::variables_map& options)
+void debug_miner_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 { try {
-   ilog("debug_candidate plugin:  plugin_initialize() begin");
+   ilog("debug_miner plugin:  plugin_initialize() begin");
    _options = &options;
 
    if( options.count("private-key") )
@@ -106,12 +106,12 @@ void debug_candidate_plugin::plugin_initialize(const boost::program_options::var
 		   _private_keys[key_id_to_wif_pair.first] = *private_key;
 	   }
    }
-   ilog("debug_candidate plugin:  plugin_initialize() end");
+   ilog("debug_miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }
 
-void debug_candidate_plugin::plugin_startup()
+void debug_miner_plugin::plugin_startup()
 {
-   ilog("debug_candidate_plugin::plugin_startup() begin");
+   ilog("debug_miner_plugin::plugin_startup() begin");
    chain::database& db = database();
 
    // connect needed signals
@@ -123,7 +123,7 @@ void debug_candidate_plugin::plugin_startup()
    return;
 }
 
-void debug_candidate_plugin::on_changed_objects( const std::vector<graphene::db::object_id_type>& ids, const fc::flat_set<graphene::chain::account_id_type>& impacted_accounts )
+void debug_miner_plugin::on_changed_objects( const std::vector<graphene::db::object_id_type>& ids, const fc::flat_set<graphene::chain::account_id_type>& impacted_accounts )
 {
    if( _json_object_stream && (ids.size() > 0) )
    {
@@ -139,7 +139,7 @@ void debug_candidate_plugin::on_changed_objects( const std::vector<graphene::db:
    }
 }
 
-void debug_candidate_plugin::on_removed_objects( const std::vector<graphene::db::object_id_type>& ids, const std::vector<const graphene::db::object*> objs, const fc::flat_set<graphene::chain::account_id_type>& impacted_accounts )
+void debug_miner_plugin::on_removed_objects( const std::vector<graphene::db::object_id_type>& ids, const std::vector<const graphene::db::object*> objs, const fc::flat_set<graphene::chain::account_id_type>& impacted_accounts )
 {
    if( _json_object_stream )
    {
@@ -150,7 +150,7 @@ void debug_candidate_plugin::on_removed_objects( const std::vector<graphene::db:
    }
 }
 
-void debug_candidate_plugin::on_applied_block( const graphene::chain::signed_block& b )
+void debug_miner_plugin::on_applied_block( const graphene::chain::signed_block& b )
 {
    if( _json_object_stream )
    {
@@ -158,7 +158,7 @@ void debug_candidate_plugin::on_applied_block( const graphene::chain::signed_blo
    }
 }
 
-void debug_candidate_plugin::set_json_object_stream( const std::string& filename )
+void debug_miner_plugin::set_json_object_stream( const std::string& filename )
 {
    if( _json_object_stream )
    {
@@ -168,13 +168,13 @@ void debug_candidate_plugin::set_json_object_stream( const std::string& filename
    _json_object_stream = std::make_shared< std::ofstream >( filename );
 }
 
-void debug_candidate_plugin::flush_json_object_stream()
+void debug_miner_plugin::flush_json_object_stream()
 {
    if( _json_object_stream )
       _json_object_stream->flush();
 }
 
-void debug_candidate_plugin::plugin_shutdown()
+void debug_miner_plugin::plugin_shutdown()
 {
    if( _json_object_stream )
    {

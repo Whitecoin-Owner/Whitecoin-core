@@ -35,12 +35,12 @@ namespace graphene { namespace chain {
 
 using boost::container::flat_set;
 
-candidate_id_type database::get_scheduled_candidate( uint32_t slot_num )const
+miner_id_type database::get_scheduled_miner( uint32_t slot_num )const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    const witness_schedule_object& wso = witness_schedule_id_type()(*this);
    uint64_t current_aslot = dpo.current_aslot + slot_num;
-   return wso.current_shuffled_candidates[ current_aslot % GRAPHENE_PRODUCT_PER_ROUND];
+   return wso.current_shuffled_miners[ current_aslot % GRAPHENE_PRODUCT_PER_ROUND];
 }
 
 fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
@@ -90,7 +90,7 @@ uint32_t database::get_slot_at_time(fc::time_point_sec when)const
    return (when - first_slot_time).to_seconds() / block_interval() + 1;
 }
 
-uint32_t database::candidate_participation_rate()const
+uint32_t database::miner_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    return uint64_t(GRAPHENE_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
@@ -105,13 +105,13 @@ bool database::is_white(const address& addr, const int& op) const
 		return true;
 	return false;
 }
-map<account_id_type, vector<asset>> database::get_candidate_lockbalance_info(const candidate_id_type& id) const
+map<account_id_type, vector<asset>> database::get_miner_lockbalance_info(const miner_id_type& id) const
 {
 	map<account_id_type, vector<asset>> result;
-	const auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_candidate_asset>();
+	const auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
 	auto range = index.equal_range(boost::make_tuple(id));
 	for (auto localbalance_obj : boost::make_iterator_range(range.first, range.second)) {
-		if (localbalance_obj.lockto_candidate_account != id)
+		if (localbalance_obj.lockto_miner_account != id)
 			continue;
 		if (result.count(localbalance_obj.lock_balance_account) == 0)
 		{
@@ -167,7 +167,7 @@ void database::modify_current_collected_fee(asset changed_fee)
 	_total_collected_fees[changed_fee.asset_id] += changed_fee.amount;
 }
 
-share_type database::get_candidate_pay_per_block(uint32_t block_num) {
+share_type database::get_miner_pay_per_block(uint32_t block_num) {
 
 	auto order_blocks = get_global_properties().unorder_blocks_match;
 	for (const auto& item : order_blocks)
@@ -207,7 +207,7 @@ void database::update_fee_pool()
 }
 
 
-void database::pay_candidate(const candidate_id_type& candidate_id,asset trxfee)
+void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 {
 	// find current account lockbalance
 	try {
@@ -215,9 +215,9 @@ void database::pay_candidate(const candidate_id_type& candidate_id,asset trxfee)
 		const auto& dgp = get_dynamic_global_properties();
 
 		auto cache_datas = dgp.current_round_lockbalance_cache;
-		auto candidate_obj = get(candidate_id);
-		auto candidate_acc = get(candidate_obj.candidate_account);
-		auto current_block_reward = get_candidate_pay_per_block(dgp.head_block_number);
+		auto miner_obj = get(miner_id);
+		auto miner_acc = get(miner_obj.miner_account);
+		auto current_block_reward = get_miner_pay_per_block(dgp.head_block_number);
 		//bonus to wallfacers
 		auto committee_count = get_wallfacer_members().size();
 		int64_t all_committee_paid = current_block_reward.value *(GRAPHENE_GUARD_PAY_RATIO) / 100;
@@ -226,24 +226,24 @@ void database::pay_candidate(const candidate_id_type& candidate_id,asset trxfee)
 		auto all_wallfacer_infos = get_wallfacer_members();
 		for (int i = 0; i < committee_count - 1; i++) {
 			auto committe_obj = get(all_wallfacer_infos.at(i).wallfacer_member_account);
-			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)), candidate_id);
+			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)), miner_id);
 			committee_pay += end_value;
 		}
 		auto committe_obj = get(all_wallfacer_infos.at(committee_count-1).wallfacer_member_account);
-		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)), candidate_id);
+		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)), miner_id);
 		
 		uint64_t develop_team_paid = current_block_reward.value *(XWC_DEVELOP_TEAM_PAY_TATIO) / 100;
-		//adjust_pay_back_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid),candidate_acc.name);
+		//adjust_pay_back_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid),miner_acc.name);
 		adjust_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid));
-		if (cache_datas.count(candidate_id) > 0)
+		if (cache_datas.count(miner_id) > 0)
 		{
-			auto& one_data = cache_datas[candidate_id];
-			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(candidate_obj.pledge_weight.hi);
+			auto& one_data = cache_datas[miner_id];
+			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi);
 			all_pledge <<= 64;
-			all_pledge +=boost::multiprecision::uint128_t(candidate_obj.pledge_weight.lo);
+			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
 			uint64_t all_paid = current_block_reward.value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100 + trxfee.amount.value;
-			auto candidate_account_obj = get(candidate_obj.candidate_account);
-			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - candidate_account_obj.options.candidate_pledge_pay_back) / 100;
+			auto miner_account_obj = get(miner_obj.miner_account);
+			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / 100;
 			uint64_t all_pledge_paid = 0;
 			boost::multiprecision::uint256_t cal_cur_pledge = 0;
 			for (auto one_pledge : one_data)
@@ -263,7 +263,7 @@ void database::pay_candidate(const candidate_id_type& candidate_id,asset trxfee)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), candidate_id);
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), miner_id);
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
 				{
@@ -279,17 +279,17 @@ void database::pay_candidate(const candidate_id_type& candidate_id,asset trxfee)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), candidate_id);
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), miner_id);
 				}
 			}
 			FC_ASSERT(cal_cur_pledge <= all_pledge, "cal_cur_pledge is ${cal_cur_pledge} and  all_pledge is ${all_pledge}", ("cal_cur_pledge",cal_cur_pledge.str())("all_pledge", all_pledge.str()));
-			adjust_pay_back_balance(candidate_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)), candidate_id);
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)), miner_id);
 		}
 		else
 		{
-			auto candidate_account_obj = get(candidate_obj.candidate_account);
+			auto miner_account_obj = get(miner_obj.miner_account);
 			auto all_paid = current_block_reward.value *(GRAPHENE_ALL_MINER_PAY_RATIO) / 100 + trxfee.amount.value;
-			adjust_pay_back_balance(candidate_account_obj.addr, asset(all_paid, asset_id_type(0)), candidate_id);
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)), miner_id);
 		}
 		auto supply_added = current_block_reward;
 		modify(get(asset_id_type()).dynamic_asset_data_id(*this), [supply_added](asset_dynamic_data_object& d) {
@@ -299,7 +299,7 @@ void database::pay_candidate(const candidate_id_type& candidate_id,asset trxfee)
 }
 
 
-void database::update_candidate_schedule()
+void database::update_miner_schedule()
 {
 	const witness_schedule_object& wso = witness_schedule_id_type()(*this);
 	const global_property_object& gpo = get_global_properties();
@@ -328,17 +328,17 @@ void database::update_candidate_schedule()
 			for (auto& w : gpo.active_witnesses)
 			{
 
-				modify(get(w), [&](candidate_object& candidate_obj)
+				modify(get(w), [&](miner_object& miner_obj)
 				{
-					candidate_obj.pledge_weight = 100 * (candidate_obj.total_produced + 1);
-					for (auto& one_lock_balance : candidate_obj.lockbalance_total)
+					miner_obj.pledge_weight = 100 * (miner_obj.total_produced + 1);
+					for (auto& one_lock_balance : miner_obj.lockbalance_total)
 					{
 						const auto& asset_obj = one_lock_balance.second.asset_id(*this);
 						if (one_lock_balance.second.asset_id == asset_id_type(0))
 						{
 							if (one_lock_balance.second.amount.value > 0)
 							{
-								candidate_obj.pledge_weight += fc::uint128_t(one_lock_balance.second.amount.value);
+								miner_obj.pledge_weight += fc::uint128_t(one_lock_balance.second.amount.value);
 							}
 
 							continue;
@@ -350,33 +350,33 @@ void database::update_candidate_schedule()
 							boost::multiprecision::uint128_t cal_middle = boost::multiprecision::uint128_t(one_lock_balance.second.amount.value) * boost::multiprecision::uint128_t(asset_obj.current_feed.settlement_price.quote.amount.value);
 							boost::multiprecision::uint128_t cal_end = cal_middle / boost::multiprecision::uint128_t(asset_obj.current_feed.settlement_price.base.amount.value);
 							fc::uint128_t tran_end = fc::uint128_t(cal_end.str());
-							candidate_obj.pledge_weight += tran_end;
-							total += candidate_obj.pledge_weight;
+							miner_obj.pledge_weight += tran_end;
+							total += miner_obj.pledge_weight;
 						}
 					}
 				});
 			}
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
-				_wso.current_shuffled_candidates.clear();
-				_wso.current_shuffled_candidates.reserve(GRAPHENE_PRODUCT_PER_ROUND);
+				_wso.current_shuffled_miners.clear();
+				_wso.current_shuffled_miners.reserve(GRAPHENE_PRODUCT_PER_ROUND);
 				vector< boost::multiprecision::uint256_t > temp_witnesses_weight;
-				vector<candidate_id_type> temp_active_witnesses;
+				vector<miner_id_type> temp_active_witnesses;
 				boost::multiprecision::uint256_t total_weight = 0;
 				const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
-				for (const candidate_id_type& w : gpo.active_witnesses)
+				for (const miner_id_type& w : gpo.active_witnesses)
 				{
-					auto candidate_obj = get(w);
-					auto addr = get(candidate_obj.candidate_account).addr;
+					auto miner_obj = get(w);
+					auto addr = get(miner_obj.miner_account).addr;
 					
 					if (blocked_idx.find(addr) != blocked_idx.end())
 						continue;
 					const auto& witness_obj = w(*this);
 					auto temp_hi = boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi);
 					temp_hi <<= 64;
-					auto temp_candidate_weight = (temp_hi + boost::multiprecision::uint256_t(witness_obj.pledge_weight.lo)) * boost::multiprecision::uint256_t(witness_obj.participation_rate) / 100;
-					total_weight += temp_candidate_weight;
-					temp_witnesses_weight.push_back(temp_candidate_weight);
+					auto temp_miner_weight = (temp_hi + boost::multiprecision::uint256_t(witness_obj.pledge_weight.lo)) * boost::multiprecision::uint256_t(witness_obj.participation_rate) / 100;
+					total_weight += temp_miner_weight;
+					temp_witnesses_weight.push_back(temp_miner_weight);
 					temp_active_witnesses.push_back(w);
 				}
 				fc::sha256 rand_seed;
@@ -393,7 +393,7 @@ void database::update_candidate_schedule()
 					}
 					boost::multiprecision::uint256_t j = (r % total_weight);
 					int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
-					_wso.current_shuffled_candidates.push_back(temp_active_witnesses[slot]);
+					_wso.current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 					total_weight -= temp_witnesses_weight[slot];
 					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1 - i]);
 					std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1 - i]);
@@ -403,22 +403,22 @@ void database::update_candidate_schedule()
 			});
 
 			const witness_schedule_object& wso_back = witness_schedule_id_type()(*this);
-			std::map<candidate_id_type, std::vector<lockbalance_object>> temp_lockbalance_cache;
+			std::map<miner_id_type, std::vector<lockbalance_object>> temp_lockbalance_cache;
 			std::map<asset_id_type, price_feed> temp_lockbalance_price_feed;
 			std::set<asset_id_type> all_reflect_asset_id;
-			const auto& all_lock_balances = get_index_type<lockbalance_index>().indices().get<by_candidate_account>();
+			const auto& all_lock_balances = get_index_type<lockbalance_index>().indices().get<by_miner_account>();
 
-			for (const auto& one_candidate : wso_back.current_shuffled_candidates) {
-				auto candidate_lockbalance_range = all_lock_balances.equal_range(one_candidate);
-				std::for_each(candidate_lockbalance_range.first, candidate_lockbalance_range.second,
-					[&temp_lockbalance_cache,&all_reflect_asset_id,&one_candidate](const lockbalance_object& one_lockbalance) {
+			for (const auto& one_miner : wso_back.current_shuffled_miners) {
+				auto miner_lockbalance_range = all_lock_balances.equal_range(one_miner);
+				std::for_each(miner_lockbalance_range.first, miner_lockbalance_range.second,
+					[&temp_lockbalance_cache,&all_reflect_asset_id,&one_miner](const lockbalance_object& one_lockbalance) {
 					std::vector<lockbalance_object> temp_locks;
-					if (temp_lockbalance_cache.count(one_candidate))
+					if (temp_lockbalance_cache.count(one_miner))
 					{
-						temp_locks = temp_lockbalance_cache[one_candidate];
+						temp_locks = temp_lockbalance_cache[one_miner];
 					}
 					temp_locks.push_back(one_lockbalance);
-					temp_lockbalance_cache[one_candidate] = temp_locks;
+					temp_lockbalance_cache[one_miner] = temp_locks;
 					all_reflect_asset_id.emplace(one_lockbalance.lock_asset_id);
 					
 				});
@@ -445,36 +445,36 @@ void database::update_candidate_schedule()
 		
 	}	FC_CAPTURE_AND_RETHROW((block_num))	
 }
-optional<candidate_object> database::get_candidate_obj(const address& addr) const
+optional<miner_object> database::get_miner_obj(const address& addr) const
 {
 	try {
-		optional<candidate_object> result;
+		optional<miner_object> result;
 		const auto& acc_idx = get_index_type<account_index>().indices().get<by_address>();
 		const auto acc_iter = acc_idx.find(addr);
 		FC_ASSERT(acc_iter != acc_idx.end());
 
-		const auto& candidate_idx = get_index_type<candidate_index>().indices().get<by_account>();
-		const auto& candidate_iter = candidate_idx.find(acc_iter->get_id());
-		FC_ASSERT(candidate_iter != candidate_idx.end());
-		result = *candidate_iter;
+		const auto& miner_idx = get_index_type<miner_index>().indices().get<by_account>();
+		const auto& miner_iter = miner_idx.find(acc_iter->get_id());
+		FC_ASSERT(miner_iter != miner_idx.end());
+		result = *miner_iter;
 		return result;
 	}FC_CAPTURE_AND_RETHROW((addr))
 
 }
 
-vector<candidate_object> database::get_candidate_objs(const vector<address>& addrs) const
+vector<miner_object> database::get_miner_objs(const vector<address>& addrs) const
 {
 	try {
-		vector<candidate_object> result;
+		vector<miner_object> result;
 		const auto& acc_idx = get_index_type<account_index>().indices().get<by_address>();
-		const auto& candidate_idx = get_index_type<candidate_index>().indices().get<by_account>();
+		const auto& miner_idx = get_index_type<miner_index>().indices().get<by_account>();
 		for (const auto& addr : addrs)
 		{
 			const auto acc_iter = acc_idx.find(addr);
 			FC_ASSERT(acc_iter != acc_idx.end());
-			const auto& candidate_iter = candidate_idx.find(acc_iter->get_id());
-			FC_ASSERT(candidate_iter != candidate_idx.end());
-			result.push_back(*candidate_iter);
+			const auto& miner_iter = miner_idx.find(acc_iter->get_id());
+			FC_ASSERT(miner_iter != miner_idx.end());
+			result.push_back(*miner_iter);
 		}
 		return result;
 	}FC_CAPTURE_AND_RETHROW((addrs))

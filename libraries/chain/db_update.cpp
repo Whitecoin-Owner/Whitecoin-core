@@ -48,15 +48,15 @@ void database::update_global_dynamic_data( const signed_block& b )
    assert( missed_blocks != 0 );
    missed_blocks--;
    for( uint32_t i = 0; i < missed_blocks; ++i ) {
-      const auto& witness_missed = get_scheduled_candidate( i+1 )(*this);
-      if(  witness_missed.id != b.candidate ) {
+      const auto& witness_missed = get_scheduled_miner( i+1 )(*this);
+      if(  witness_missed.id != b.miner ) {
          /*
-         const auto& witness_account = witness_missed.candidate_account(*this);
+         const auto& witness_account = witness_missed.miner_account(*this);
          if( (fc::time_point::now() - b.timestamp) < fc::seconds(30) )
             wlog( "Witness ${name} missed block ${n} around ${t}", ("name",witness_account.name)("n",b.block_num())("t",b.timestamp) );
             */
 
-         modify( witness_missed, [&]( candidate_object& w ) {
+         modify( witness_missed, [&]( miner_object& w ) {
            w.total_missed++;
          });
       } 
@@ -78,16 +78,16 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.head_block_number = b.block_num();
       dgp.head_block_id = b.id();
       dgp.time = b.timestamp;
-      dgp.current_witness = b.candidate;
+      dgp.current_witness = b.miner;
       dgp.recent_slots_filled = (
            (dgp.recent_slots_filled << 1)
            + 1) << missed_blocks;
       dgp.current_aslot += missed_blocks+1;
 	  if (b.block_num() % GRAPHENE_PRODUCT_PER_ROUND == 0)
 	  {
-		  dgp.round_produced_candidates.clear();
+		  dgp.round_produced_miners.clear();
 	  }
-	  dgp.round_produced_candidates.insert(b.candidate);
+	  dgp.round_produced_miners.insert(b.miner);
    });
 
    if( !(get_node_properties().skip_flags & skip_undo_history_check) )
@@ -103,22 +103,22 @@ void database::update_global_dynamic_data( const signed_block& b )
   // _fork_db.set_max_size( _dgp.head_block_number - _dgp.last_irreversible_block_num + 1 );
 }
 
-void database::update_signing_candidate(const candidate_object& signing_witness, const signed_block& new_block)
+void database::update_signing_miner(const miner_object& signing_witness, const signed_block& new_block)
 {
    const global_property_object& gpo = get_global_properties();
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    uint64_t new_block_aslot = dpo.current_aslot + get_slot_at_time( new_block.timestamp );
 
-   share_type candidate_pay = std::min( gpo.parameters.candidate_pay_per_block, dpo.candidate_budget );
+   share_type miner_pay = std::min( gpo.parameters.miner_pay_per_block, dpo.miner_budget );
 
    /*  modify( dpo, [&]( dynamic_global_property_object& _dpo )
 	 {
-		_dpo.candidate_budget -= candidate_pay;
+		_dpo.miner_budget -= miner_pay;
 	 } );*/
 
-   deposit_candidate_pay( signing_witness, candidate_pay );
+   deposit_miner_pay( signing_witness, miner_pay );
 
-   modify( signing_witness, [&]( candidate_object& _wit )
+   modify( signing_witness, [&]( miner_object& _wit )
    {
       _wit.last_aslot = new_block_aslot;
       _wit.last_confirmed_block_num = new_block.block_num();
@@ -132,9 +132,9 @@ void database::update_last_irreversible_block()
    const global_property_object& gpo = get_global_properties();
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
 
-   vector< const candidate_object* > wit_objs;
+   vector< const miner_object* > wit_objs;
    wit_objs.reserve( gpo.active_witnesses.size() );
-   for( const candidate_id_type& wid : gpo.active_witnesses )
+   for( const miner_id_type& wid : gpo.active_witnesses )
       wit_objs.push_back( &(wid(*this)) );
 
    static_assert( GRAPHENE_IRREVERSIBLE_THRESHOLD > 0, "irreversible threshold must be nonzero" );
@@ -145,7 +145,7 @@ void database::update_last_irreversible_block()
 
    size_t offset = ((GRAPHENE_IRREVERSIBLE_THRESHOLD) * wit_objs.size() / GRAPHENE_100_PERCENT);
    std::sort( wit_objs.begin(), wit_objs.end(),
-      []( const candidate_object* a, const candidate_object* b )
+      []( const miner_object* a, const miner_object* b )
       {
          return a->last_confirmed_block_num < b->last_confirmed_block_num;
       } );
@@ -210,7 +210,7 @@ void database::determine_referendum_detailes()
 	try {
 		/* when there are first referendum come up
 		*  the referendum packing period will begin
-		*  during referendum packing period, candidate can create new referendum
+		*  during referendum packing period, miner can create new referendum
 		*  but they cannot vote
 		*  in other words,during vote period, a new referendum cannot be created
 		*/
@@ -470,9 +470,9 @@ void database::clear_expired_proposals()
 			   {
 				   for (const auto & op : referedum.proposed_transaction.operations)
 				   {
-					   if (op.which() == operation::tag<candidate_referendum_wallfacer_operation>::value)
+					   if (op.which() == operation::tag<miner_referendum_wallfacer_operation>::value)
 					   {
-						   auto wallfacer_op = op.get<candidate_referendum_wallfacer_operation>();
+						   auto wallfacer_op = op.get<miner_referendum_wallfacer_operation>();
 						   auto& wallfacer_idx = get_index_type<wallfacer_member_index>().indices().get<by_account>();
 						   for (auto itr : wallfacer_op.replace_queue)
 						   {

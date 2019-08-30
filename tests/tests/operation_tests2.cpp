@@ -418,12 +418,12 @@ BOOST_AUTO_TEST_CASE( feed_limit_test )
    BOOST_CHECK(!bitasset.current_feed.settlement_price.is_null());
 } FC_LOG_AND_RETHROW() }
 
-BOOST_AUTO_TEST_CASE( candidate_create )
+BOOST_AUTO_TEST_CASE( miner_create )
 { try {
    ACTOR(nathan);
    upgrade_to_lifetime_member(nathan_id);
    trx.clear();
-   candidate_id_type nathan_witness_id = create_candidate(nathan_id, nathan_private_key).id;
+   miner_id_type nathan_witness_id = create_miner(nathan_id, nathan_private_key).id;
    // Give nathan some voting stake
    transfer(committee_account, nathan_id, asset(10000000));
    auto ba = get_balance(nathan,asset_object());
@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE( candidate_create )
    for( size_t i=0, n=witnesses.size()*2; i<n; i++ )
    {
       signed_block block = generate_block();
-      if( block.candidate == nathan_witness_id )
+      if( block.miner == nathan_witness_id )
          produced++;
    }
    BOOST_CHECK_GE( produced, 1 );
@@ -1094,7 +1094,7 @@ BOOST_AUTO_TEST_CASE( balance_object_test )
    BOOST_CHECK(db.find_object(balance_id_type(1)) != nullptr);
 
    auto slot = db.get_slot_at_time(starting_time);
-   db.generate_block(starting_time, db.get_scheduled_candidate(slot), init_account_priv_key, skip_flags);
+   db.generate_block(starting_time, db.get_scheduled_miner(slot), init_account_priv_key, skip_flags);
    set_expiration( db, trx );
 
    const balance_object& vesting_balance_1 = balance_id_type(2)(db);
@@ -1145,9 +1145,9 @@ BOOST_AUTO_TEST_CASE( balance_object_test )
    // Attempting to claim twice within a day
    GRAPHENE_CHECK_THROW(db.push_transaction(trx), balance_claim_claimed_too_often);
 
-   db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, skip_flags);
+   db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, skip_flags);
    slot = db.get_slot_at_time(vesting_balance_1.vesting_policy->begin_timestamp + 60);
-   db.generate_block(db.get_slot_time(slot), db.get_scheduled_candidate(slot), init_account_priv_key, skip_flags);
+   db.generate_block(db.get_slot_time(slot), db.get_scheduled_miner(slot), init_account_priv_key, skip_flags);
    set_expiration( db, trx );
 
    op.balance_to_claim = vesting_balance_1.id;
@@ -1171,9 +1171,9 @@ BOOST_AUTO_TEST_CASE( balance_object_test )
    // Attempting to claim twice within a day
    GRAPHENE_CHECK_THROW(db.push_transaction(trx), balance_claim_claimed_too_often);
 
-   db.generate_block(db.get_slot_time(1), db.get_scheduled_candidate(1), init_account_priv_key, skip_flags);
+   db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, skip_flags);
    slot = db.get_slot_at_time(db.head_block_time() + fc::days(1));
-   db.generate_block(db.get_slot_time(slot), db.get_scheduled_candidate(slot), init_account_priv_key, skip_flags);
+   db.generate_block(db.get_slot_time(slot), db.get_scheduled_miner(slot), init_account_priv_key, skip_flags);
    set_expiration( db, trx );
 
    op.total_claimed = vesting_balance_2.balance;

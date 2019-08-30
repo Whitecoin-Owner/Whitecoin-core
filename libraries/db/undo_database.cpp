@@ -586,8 +586,8 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case wallfacer_member_object_type:   
         return create_obj_unique_ptr<wallfacer_member_object>(var);
         break;
-    case candidate_object_type:  
-        return create_obj_unique_ptr<candidate_object>(var);
+    case miner_object_type:  
+        return create_obj_unique_ptr<miner_object>(var);
         break;
     case limit_order_object_type:    
         return create_obj_unique_ptr<limit_order_object>(var);

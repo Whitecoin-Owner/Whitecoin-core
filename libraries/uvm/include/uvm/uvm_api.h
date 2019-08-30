@@ -569,7 +569,7 @@ namespace uvm {
 			/**
 			 * lockbalance and payback
 			 */
-			virtual bool lock_contract_balance_to_candidate(lua_State *L, const char* cid, const char* asset_sym, const char* amount, const char* mid) {
+			virtual bool lock_contract_balance_to_miner(lua_State *L, const char* cid, const char* asset_sym, const char* amount, const char* mid) {
 				throw_exception(L, UVM_API_SIMPLE_ERROR, "no implemented method");
 				return false;
 			}
@@ -577,7 +577,7 @@ namespace uvm {
 				throw_exception(L, UVM_API_SIMPLE_ERROR, "no implemented method");
 				return false; 
 			}
-			virtual bool foreclose_balance_from_candidates(lua_State *L, const char* foreclose_account, const char* mid, const char* sym_to_foreclose, const char* amount) {
+			virtual bool foreclose_balance_from_miners(lua_State *L, const char* foreclose_account, const char* mid, const char* sym_to_foreclose, const char* amount) {
 				throw_exception(L, UVM_API_SIMPLE_ERROR, "no implemented method");
 				return false;
 			}

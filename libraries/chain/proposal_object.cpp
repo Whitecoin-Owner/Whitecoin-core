@@ -40,13 +40,13 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 		   return approved_key_approvals.size() >= size_t(required_account_approvals.size()*1/2 + 1);
 	   if (type == vote_id_type::wallfacer)
 		   return approved_key_approvals.size() >= size_t(required_account_approvals.size() * 1 / 2 + 1);
-	   auto& candidate_idx = db.get_index_type<candidate_index>().indices().get<by_account>();
+	   auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
 	   auto& account_idx = db.get_index_type<account_index>().indices().get<by_address>();
 	   boost::multiprecision::uint256_t total_weights = 0;
 	   boost::multiprecision::uint256_t approved_key_weights = 0;
 	   for (auto acc : required_account_approvals)
 	   {
-		   auto iter = candidate_idx.find(account_idx.find(acc)->get_id());
+		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
 		   auto temp_hi = boost::multiprecision::uint128_t(iter->pledge_weight.hi);
 		   temp_hi <<= 64;
 		   total_weights += temp_hi+boost::multiprecision::uint128_t(iter->pledge_weight.lo);
@@ -54,7 +54,7 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 	   
 	   for (auto acc : approved_key_approvals)
 	   {
-		   auto iter = candidate_idx.find(account_idx.find(acc)->get_id());
+		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
 		   auto temp_hi = boost::multiprecision::uint128_t(iter->pledge_weight.hi);
 		   temp_hi <<= 64;
 		   approved_key_weights += temp_hi + boost::multiprecision::uint128_t(iter->pledge_weight.lo);

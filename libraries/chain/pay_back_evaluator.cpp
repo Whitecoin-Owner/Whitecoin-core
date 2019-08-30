@@ -19,9 +19,9 @@ namespace graphene {
 					{
 						no_effect_balance = false;
 					}
-					const auto& candidate_obj = d.get<candidate_object>(payback_address_iter.candidate_id);
-					const auto& candidate_acc = d.get<account_object>(candidate_obj.candidate_account);
-					temp_payback_balance[candidate_acc.name] = payback_address_iter.one_owner_balance;
+					const auto& miner_obj = d.get<miner_object>(payback_address_iter.miner_id);
+					const auto& miner_acc = d.get<account_object>(miner_obj.miner_account);
+					temp_payback_balance[miner_acc.name] = payback_address_iter.one_owner_balance;
 				}
 				
 				if (no_effect_balance)
@@ -33,7 +33,7 @@ namespace graphene {
 				auto other_payback_balance = d.get_global_properties().parameters.min_pay_back_balance_other_asset;
 				
 				std::map<std::string,asset> pay_back;
-				const auto& candidates_by_id = db().get_index_type<candidate_index>().indices().get<by_account>();
+				const auto& miners_by_id = db().get_index_type<miner_index>().indices().get<by_account>();
 				const auto& accounts_by_name = db().get_index_type<account_index>().indices().get<by_name>();
 				for (const auto& pay_back_obj : o.pay_back_balance) {
 					auto symbol =d.get( pay_back_obj.second.asset_id).symbol;
@@ -45,8 +45,8 @@ namespace graphene {
 					
 					auto itr = accounts_by_name.find(pay_back_obj.first);
 					FC_ASSERT(itr != accounts_by_name.end());
-					auto candidate_itr = candidates_by_id.find(itr->get_id());
-					FC_ASSERT(candidate_itr != candidates_by_id.end());
+					auto miner_itr = miners_by_id.find(itr->get_id());
+					FC_ASSERT(miner_itr != miners_by_id.end());
 					FC_ASSERT(pay_back_obj.second.amount > 0);
 					FC_ASSERT(temp_iter != temp_payback_balance.end());
 					FC_ASSERT(pay_back_obj.second <= temp_iter->second,"withraw is ${withdraw}, reality is ${reality}",("withdraw",pay_back_obj.second)("reality",temp_iter->second));
@@ -66,12 +66,12 @@ namespace graphene {
 			
 		}
 		void_result pay_back_evaluator::do_apply(const pay_back_operation& o) {
-			const auto& candidates_by_id = db().get_index_type<candidate_index>().indices().get<by_account>();
+			const auto& miners_by_id = db().get_index_type<miner_index>().indices().get<by_account>();
 			const auto& accounts_by_name = db().get_index_type<account_index>().indices().get<by_name>();
 			for (const auto& pay_back_obj : o.pay_back_balance){
 				auto itr = accounts_by_name.find(pay_back_obj.first);
-				auto candidate_itr =  candidates_by_id.find((*itr).get_id());
-				db().adjust_pay_back_balance(o.pay_back_owner,asset(-pay_back_obj.second.amount,pay_back_obj.second.asset_id), candidate_itr->id);
+				auto miner_itr =  miners_by_id.find((*itr).get_id());
+				db().adjust_pay_back_balance(o.pay_back_owner,asset(-pay_back_obj.second.amount,pay_back_obj.second.asset_id), miner_itr->id);
 				db().adjust_balance(o.pay_back_owner, pay_back_obj.second);
 			}
 			return void_result();

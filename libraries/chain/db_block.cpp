@@ -366,7 +366,7 @@ void database::clear_votes()
 				obj.finished = true;
 				for (const auto& result : vote_results)
 				{
-					obj.result[result.index] += get_candidate_obj(result.voter)->pledge_weight;
+					obj.result[result.index] += get_miner_obj(result.voter)->pledge_weight;
 				}
 			});
 		}
@@ -445,7 +445,7 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
 signed_block database::generate_block(
    fc::time_point_sec when,
-   candidate_id_type witness_id,
+   miner_id_type witness_id,
    const fc::ecc::private_key& block_signing_private_key,
    uint32_t skip /* = 0 */
    )
@@ -461,7 +461,7 @@ signed_block database::generate_block(
 
 signed_block database::_generate_block(
    fc::time_point_sec when,
-	candidate_id_type witness_id,
+	miner_id_type witness_id,
    const fc::ecc::private_key& block_signing_private_key
    )
 {
@@ -469,15 +469,15 @@ signed_block database::_generate_block(
    uint32_t skip = get_node_properties().skip_flags;
    uint32_t slot_num = get_slot_at_time( when );
    FC_ASSERT( slot_num > 0 );
-   candidate_id_type scheduled_witness = get_scheduled_candidate( slot_num );
+   miner_id_type scheduled_witness = get_scheduled_miner( slot_num );
    FC_ASSERT( scheduled_witness == witness_id );
 
    const auto& witness_obj = witness_id(*this);
-   const auto& account_obj = witness_obj.candidate_account(*this);
+   const auto& account_obj = witness_obj.miner_account(*this);
    int contract_op_in_a_block = 20;
    if(USE_CBOR_DIFF_FORK_HEIGHT <head_block_num())
 	   contract_op_in_a_block = 100;
- if( !(skip & skip_candidate_signature) )
+ if( !(skip & skip_miner_signature) )
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
@@ -618,7 +618,7 @@ signed_block database::_generate_block(
    pending_block.timestamp = when;
    pending_block.trxfee = _total_collected_fees[asset_id_type(0)];
    pending_block.transaction_merkle_root = pending_block.calculate_merkle_root();
-   pending_block.candidate = witness_id;
+   pending_block.miner = witness_id;
 
 
 
@@ -650,7 +650,7 @@ signed_block database::_generate_block(
 
 
 
-   if( !(skip & skip_candidate_signature) )
+   if( !(skip & skip_miner_signature) )
       pending_block.sign( block_signing_private_key );
 
    // TODO:  Move this to _push_block() so session is restored.
@@ -765,7 +765,7 @@ void database::_apply_block( const signed_block& next_block )
    reset_current_collected_fee();
    FC_ASSERT( (skip & skip_merkle_check) || next_block.transaction_merkle_root == next_block.calculate_merkle_root(), "", ("next_block.transaction_merkle_root",next_block.transaction_merkle_root)("calc",next_block.calculate_merkle_root())("next_block",next_block)("id",next_block.id()) );
 
-   const candidate_object& signing_witness = validate_block_header(skip, next_block);
+   const miner_object& signing_witness = validate_block_header(skip, next_block);
    const auto& global_props = get_global_properties();
    const auto& dynamic_global_props = get<dynamic_global_property_object>(dynamic_global_property_id_type());
    bool maint_needed = (dynamic_global_props.next_maintenance_time <= next_block.timestamp);
@@ -802,7 +802,7 @@ void database::_apply_block( const signed_block& next_block )
    
    //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
-   update_signing_candidate(signing_witness, next_block);
+   update_signing_miner(signing_witness, next_block);
    update_last_irreversible_block();
 
    // Are we at the maintenance interval?
@@ -824,9 +824,9 @@ void database::_apply_block( const signed_block& next_block )
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
    update_fee_pool();
-   pay_candidate(next_block.candidate,asset(next_block.trxfee));
+   pay_miner(next_block.miner,asset(next_block.trxfee));
    process_bonus();
-   update_candidate_schedule();
+   update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
@@ -991,12 +991,12 @@ unique_ptr<op_evaluator>& database::get_evaluator(const operation& op)
 		assert("No registered evaluator for this operation" && false);
 	return eval;
 }
-const candidate_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
+const miner_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
 {
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );
    FC_ASSERT( head_block_time() < next_block.timestamp, "", ("head_block_time",head_block_time())("next",next_block.timestamp)("blocknum",next_block.block_num()) );
-   const candidate_object& witness = next_block.candidate(*this);
-   if( !(skip&skip_candidate_signature) ) 
+   const miner_object& witness = next_block.miner(*this);
+   if( !(skip&skip_miner_signature) ) 
       FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
 
    if( !(skip&skip_witness_schedule_check) )
@@ -1004,10 +1004,10 @@ const candidate_object& database::validate_block_header( uint32_t skip, const si
       uint32_t slot_num = get_slot_at_time( next_block.timestamp );
       FC_ASSERT( slot_num > 0 );
 
-      candidate_id_type scheduled_candidate = get_scheduled_candidate( slot_num );
+      miner_id_type scheduled_miner = get_scheduled_miner( slot_num );
 
-      FC_ASSERT( next_block.candidate == scheduled_candidate, "Witness produced block at wrong time",
-                 ("block witness",next_block.candidate)("scheduled",scheduled_candidate)("slot_num",slot_num) );
+      FC_ASSERT( next_block.miner == scheduled_miner, "Witness produced block at wrong time",
+                 ("block witness",next_block.miner)("scheduled",scheduled_miner)("slot_num",slot_num) );
    }
 
    return witness;

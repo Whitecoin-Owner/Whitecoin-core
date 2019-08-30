@@ -534,7 +534,7 @@
     "maximum_proposal_lifetime": 2419200,
     "maximum_asset_whitelist_authorities": 10,
     "maximum_asset_feed_publishers": 10,
-    "maximum_candidate_count": 1001,
+    "maximum_miner_count": 1001,
     "maximum_wallfacer_count": 15,
     "minimum_wallfacer_count": 7,
     "maximum_authority_membership": 10,
@@ -545,7 +545,7 @@
     "cashback_vesting_threshold": 1000,
     "count_non_member_votes": true,
     "allow_non_member_whitelists": false,
-    "candidate_pay_per_block": 100,
+    "miner_pay_per_block": 100,
     "worker_budget_per_day": 5000000,
     "max_predicate_opcode": 1,
     "fee_liquidation_threshold": 1000,
@@ -557,127 +557,127 @@
     "extensions": []
   },
   "initial_accounts": [{
-      "name": "candidate0",
+      "name": "miner0",
       "owner_key": "XWC89nqQEXQVzhijT6s6zo46Rjm7LynHRf5ATKrgN674QRAv58NDV",
       "active_key": "XWC89nqQEXQVzhijT6s6zo46Rjm7LynHRf5ATKrgN674QRAv58NDV",
       "is_lifetime_member": true
     },{
-      "name": "candidate1",
+      "name": "miner1",
       "owner_key": "XWC5RSyoWtmzW89vW8paQDvHfqfWtDGJiFwsaEWuV7xHEReiv9y4r",
       "active_key": "XWC5RSyoWtmzW89vW8paQDvHfqfWtDGJiFwsaEWuV7xHEReiv9y4r",
       "is_lifetime_member": true
     },{
-      "name": "candidate2",
+      "name": "miner2",
       "owner_key": "XWC56MJDfAXkdEE6nkhgg7Dejn2BMiCyVqqDDtmRHyC2vnzc7ucH5",
       "active_key": "XWC56MJDfAXkdEE6nkhgg7Dejn2BMiCyVqqDDtmRHyC2vnzc7ucH5",
       "is_lifetime_member": true
     },{
-      "name": "candidate3",
+      "name": "miner3",
       "owner_key": "XWC8CBwta5einpVBiQGMpeisEA54rMfpR1vsvNrjJqWDQX5PGr5hz",
       "active_key": "XWC8CBwta5einpVBiQGMpeisEA54rMfpR1vsvNrjJqWDQX5PGr5hz",
       "is_lifetime_member": true
     },{
-      "name": "candidate4",
+      "name": "miner4",
       "owner_key": "XWC5Jcf2nbNLCjzjoefaV4ZuZrhxC5yuXnaJ9tjVpspDAhsebPKa2",
       "active_key": "XWC5Jcf2nbNLCjzjoefaV4ZuZrhxC5yuXnaJ9tjVpspDAhsebPKa2",
       "is_lifetime_member": true
     },{
-      "name": "candidate5",
+      "name": "miner5",
       "owner_key": "XWC5c4DKP3k4Ck31Zi63gR3ragHn5zPj9FQtyFJ6cZMrYx2NJR1eU",
       "active_key": "XWC5c4DKP3k4Ck31Zi63gR3ragHn5zPj9FQtyFJ6cZMrYx2NJR1eU",
       "is_lifetime_member": true
     },{
-      "name": "candidate6",
+      "name": "miner6",
       "owner_key": "XWC668XgLnefZJrYaDBBSKa1Axhs5J2X54RyHdS556FbWh3Xu5oq8",
       "active_key": "XWC668XgLnefZJrYaDBBSKa1Axhs5J2X54RyHdS556FbWh3Xu5oq8",
       "is_lifetime_member": true
     },{
-      "name": "candidate7",
+      "name": "miner7",
       "owner_key": "XWC6j9yqchCUFXbM3CFczoqbCbPL4rcYiC2KCRdtHLQe9EQwaM631",
       "active_key": "XWC6j9yqchCUFXbM3CFczoqbCbPL4rcYiC2KCRdtHLQe9EQwaM631",
       "is_lifetime_member": true
     },{
-      "name": "candidate8",
+      "name": "miner8",
       "owner_key": "XWC5ThbvngpYyrzhDGsHxnGuvLAtJ8Fkcpuj6d21w9gqHUT3DcWDE",
       "active_key": "XWC5ThbvngpYyrzhDGsHxnGuvLAtJ8Fkcpuj6d21w9gqHUT3DcWDE",
       "is_lifetime_member": true
     },{
-      "name": "candidate9",
+      "name": "miner9",
       "owner_key": "XWC6BN99ZXD3E13drcskWiYy19mBDisMTx99GQpz7FrTYnpzeSQRi",
       "active_key": "XWC6BN99ZXD3E13drcskWiYy19mBDisMTx99GQpz7FrTYnpzeSQRi",
       "is_lifetime_member": true
     },{
-      "name": "candidate10",
+      "name": "miner10",
       "owner_key": "XWC5fCyQa6Xvd4RRBPWnGZ6LKsM5sTtgWFwNN5yzfmybGxEd9E5PA",
       "active_key": "XWC5fCyQa6Xvd4RRBPWnGZ6LKsM5sTtgWFwNN5yzfmybGxEd9E5PA",
       "is_lifetime_member": true
     },{
-      "name": "candidate11",
+      "name": "miner11",
       "owner_key": "XWC74esABnHujJdKxYAu51karqNjRZDCAxB3EhFhHH2P7ePNQ522C",
       "active_key": "XWC74esABnHujJdKxYAu51karqNjRZDCAxB3EhFhHH2P7ePNQ522C",
       "is_lifetime_member": true
     },{
-      "name": "candidate12",
+      "name": "miner12",
       "owner_key": "XWC5chM2KcfW2qdXd8xJyPGb4kXCR5GQ3tCnohZw22oDJm6vNpvzR",
       "active_key": "XWC5chM2KcfW2qdXd8xJyPGb4kXCR5GQ3tCnohZw22oDJm6vNpvzR",
       "is_lifetime_member": true
     },{
-      "name": "candidate13",
+      "name": "miner13",
       "owner_key": "XWC6jNzbe2HqtsCgAuvto3jF7jF4B3bGdksfSAsDAW9a8feeJ2me9",
       "active_key": "XWC6jNzbe2HqtsCgAuvto3jF7jF4B3bGdksfSAsDAW9a8feeJ2me9",
       "is_lifetime_member": true
     },{
-      "name": "candidate14",
+      "name": "miner14",
       "owner_key": "XWC6JKxhmgyx6xBB6gLwSG25bCJWwHSyyR36qxsSEA3iQZ4V8ipiV",
       "active_key": "XWC6JKxhmgyx6xBB6gLwSG25bCJWwHSyyR36qxsSEA3iQZ4V8ipiV",
       "is_lifetime_member": true
     },{
-      "name": "candidate15",
+      "name": "miner15",
       "owner_key": "XWC7UkWJWSBxbZti5YcysRWzFr9Y2jzzP8pHMe7Lk85bG5svTBcJj",
       "active_key": "XWC7UkWJWSBxbZti5YcysRWzFr9Y2jzzP8pHMe7Lk85bG5svTBcJj",
       "is_lifetime_member": true
     },{
-      "name": "candidate16",
+      "name": "miner16",
       "owner_key": "XWC7NGiiZWfniLkgD2xedSAG7VGoaJbigrjZjzcv6NXwbpEYY2hfY",
       "active_key": "XWC7NGiiZWfniLkgD2xedSAG7VGoaJbigrjZjzcv6NXwbpEYY2hfY",
       "is_lifetime_member": true
     },{
-      "name": "candidate17",
+      "name": "miner17",
       "owner_key": "XWC7aUWDBxcmvCUxusji9Wo6UhuaSwjSibnveydjDCTZZTtCoriaY",
       "active_key": "XWC7aUWDBxcmvCUxusji9Wo6UhuaSwjSibnveydjDCTZZTtCoriaY",
       "is_lifetime_member": true
     },{
-      "name": "candidate18",
+      "name": "miner18",
       "owner_key": "XWC5GaMs3TkKKstNrqZo9HeHyfDrcwQnNzfwGqwbjoh6paR1rsDnd",
       "active_key": "XWC5GaMs3TkKKstNrqZo9HeHyfDrcwQnNzfwGqwbjoh6paR1rsDnd",
       "is_lifetime_member": true
     },{
-      "name": "candidate19",
+      "name": "miner19",
       "owner_key": "XWC7rggbDcq8CEY5fi2Z93D3JcA5uJqC7SEjmtuqEmcGxLjtQhGAf",
       "active_key": "XWC7rggbDcq8CEY5fi2Z93D3JcA5uJqC7SEjmtuqEmcGxLjtQhGAf",
       "is_lifetime_member": true
     },{
-      "name": "candidate20",
+      "name": "miner20",
       "owner_key": "XWC7aJvuD9z5d4pMBcA5RzaWK1aqXyCzvhwQGHWDQv4fdS6X5THeN",
       "active_key": "XWC7aJvuD9z5d4pMBcA5RzaWK1aqXyCzvhwQGHWDQv4fdS6X5THeN",
       "is_lifetime_member": true
     },{
-      "name": "candidate21",
+      "name": "miner21",
       "owner_key": "XWC6k7iAvd7JHaDniV1iUpSbBavZozPff6HVU1AkTL3pFE2AngmXq",
       "active_key": "XWC6k7iAvd7JHaDniV1iUpSbBavZozPff6HVU1AkTL3pFE2AngmXq",
       "is_lifetime_member": true
     },{
-      "name": "candidate22",
+      "name": "miner22",
       "owner_key": "XWC763huNc1YfpQfkocYng9uPqnern42xgGRgQpqCfpKTATfaVh3p",
       "active_key": "XWC763huNc1YfpQfkocYng9uPqnern42xgGRgQpqCfpKTATfaVh3p",
       "is_lifetime_member": true
     },{
-      "name": "candidate23",
+      "name": "miner23",
       "owner_key": "XWC8KfRodDkPywZvKDQdNft2VZRSJ81NMCBwBu1HF8WmbyEDweNkg",
       "active_key": "XWC8KfRodDkPywZvKDQdNft2VZRSJ81NMCBwBu1HF8WmbyEDweNkg",
       "is_lifetime_member": true
     },{
-      "name": "candidate24",
+      "name": "miner24",
       "owner_key": "XWC7q12fJRNQz19pBHHdDwu4wPko7XtYsFmkED9DB51nNpfdLpGs1",
       "active_key": "XWC7q12fJRNQz19pBHHdDwu4wPko7XtYsFmkED9DB51nNpfdLpGs1",
       "is_lifetime_member": true
@@ -771,85 +771,85 @@
     }
   ],
   "initial_vesting_balances": [],
-  "initial_active_candidates": 25,
-  "initial_candidate_candidates": [{
-      "owner_name": "candidate0",
+  "initial_active_miners": 25,
+  "initial_miner_miners": [{
+      "owner_name": "miner0",
       "block_signing_key": "XWC89nqQEXQVzhijT6s6zo46Rjm7LynHRf5ATKrgN674QRAv58NDV"
     },{
-      "owner_name": "candidate1",
+      "owner_name": "miner1",
       "block_signing_key": "XWC5RSyoWtmzW89vW8paQDvHfqfWtDGJiFwsaEWuV7xHEReiv9y4r"
     },{
-      "owner_name": "candidate2",
+      "owner_name": "miner2",
       "block_signing_key": "XWC56MJDfAXkdEE6nkhgg7Dejn2BMiCyVqqDDtmRHyC2vnzc7ucH5"
     },{
-      "owner_name": "candidate3",
+      "owner_name": "miner3",
       "block_signing_key": "XWC8CBwta5einpVBiQGMpeisEA54rMfpR1vsvNrjJqWDQX5PGr5hz"
     },{
-      "owner_name": "candidate4",
+      "owner_name": "miner4",
       "block_signing_key": "XWC5Jcf2nbNLCjzjoefaV4ZuZrhxC5yuXnaJ9tjVpspDAhsebPKa2"
     },{
-      "owner_name": "candidate5",
+      "owner_name": "miner5",
       "block_signing_key": "XWC5c4DKP3k4Ck31Zi63gR3ragHn5zPj9FQtyFJ6cZMrYx2NJR1eU"
     },{
-      "owner_name": "candidate6",
+      "owner_name": "miner6",
       "block_signing_key": "XWC668XgLnefZJrYaDBBSKa1Axhs5J2X54RyHdS556FbWh3Xu5oq8"
     },{
-      "owner_name": "candidate7",
+      "owner_name": "miner7",
       "block_signing_key": "XWC6j9yqchCUFXbM3CFczoqbCbPL4rcYiC2KCRdtHLQe9EQwaM631"
     },{
-      "owner_name": "candidate8",
+      "owner_name": "miner8",
       "block_signing_key": "XWC5ThbvngpYyrzhDGsHxnGuvLAtJ8Fkcpuj6d21w9gqHUT3DcWDE"
     },{
-      "owner_name": "candidate9",
+      "owner_name": "miner9",
       "block_signing_key": "XWC6BN99ZXD3E13drcskWiYy19mBDisMTx99GQpz7FrTYnpzeSQRi"
     },{
-      "owner_name": "candidate10",
+      "owner_name": "miner10",
       "block_signing_key": "XWC5fCyQa6Xvd4RRBPWnGZ6LKsM5sTtgWFwNN5yzfmybGxEd9E5PA"
     },{
-      "owner_name": "candidate11",
+      "owner_name": "miner11",
       "block_signing_key": "XWC74esABnHujJdKxYAu51karqNjRZDCAxB3EhFhHH2P7ePNQ522C"
     },{
-      "owner_name": "candidate12",
+      "owner_name": "miner12",
       "block_signing_key": "XWC5chM2KcfW2qdXd8xJyPGb4kXCR5GQ3tCnohZw22oDJm6vNpvzR"
     },{
-      "owner_name": "candidate13",
+      "owner_name": "miner13",
       "block_signing_key": "XWC6jNzbe2HqtsCgAuvto3jF7jF4B3bGdksfSAsDAW9a8feeJ2me9"
     },{
-      "owner_name": "candidate14",
+      "owner_name": "miner14",
       "block_signing_key": "XWC6JKxhmgyx6xBB6gLwSG25bCJWwHSyyR36qxsSEA3iQZ4V8ipiV"
     },{
-      "owner_name": "candidate15",
+      "owner_name": "miner15",
       "block_signing_key": "XWC7UkWJWSBxbZti5YcysRWzFr9Y2jzzP8pHMe7Lk85bG5svTBcJj"
     },{
-      "owner_name": "candidate16",
+      "owner_name": "miner16",
       "block_signing_key": "XWC7NGiiZWfniLkgD2xedSAG7VGoaJbigrjZjzcv6NXwbpEYY2hfY"
     },{
-      "owner_name": "candidate17",
+      "owner_name": "miner17",
       "block_signing_key": "XWC7aUWDBxcmvCUxusji9Wo6UhuaSwjSibnveydjDCTZZTtCoriaY"
     },{
-      "owner_name": "candidate18",
+      "owner_name": "miner18",
       "block_signing_key": "XWC5GaMs3TkKKstNrqZo9HeHyfDrcwQnNzfwGqwbjoh6paR1rsDnd"
     },{
-      "owner_name": "candidate19",
+      "owner_name": "miner19",
       "block_signing_key": "XWC7rggbDcq8CEY5fi2Z93D3JcA5uJqC7SEjmtuqEmcGxLjtQhGAf"
     },{
-      "owner_name": "candidate20",
+      "owner_name": "miner20",
       "block_signing_key": "XWC7aJvuD9z5d4pMBcA5RzaWK1aqXyCzvhwQGHWDQv4fdS6X5THeN"
     },{
-      "owner_name": "candidate21",
+      "owner_name": "miner21",
       "block_signing_key": "XWC6k7iAvd7JHaDniV1iUpSbBavZozPff6HVU1AkTL3pFE2AngmXq"
     },{
-      "owner_name": "candidate22",
+      "owner_name": "miner22",
       "block_signing_key": "XWC763huNc1YfpQfkocYng9uPqnern42xgGRgQpqCfpKTATfaVh3p"
     },{
-      "owner_name": "candidate23",
+      "owner_name": "miner23",
       "block_signing_key": "XWC8KfRodDkPywZvKDQdNft2VZRSJ81NMCBwBu1HF8WmbyEDweNkg"
     },{
-      "owner_name": "candidate24",
+      "owner_name": "miner24",
       "block_signing_key": "XWC7q12fJRNQz19pBHHdDwu4wPko7XtYsFmkED9DB51nNpfdLpGs1"
     }
   ],
-  "initial_wallfacer_candidates": [{
+  "initial_wallfacer_miners": [{
       "owner_name": "wallfacer0",
       "type": "PERMANENT"
     },{
@@ -896,11 +896,11 @@
       "type": "EXTERNAL"
     }
   ],
-  "initial_worker_candidates": [],
+  "initial_worker_miners": [],
   "initial_chain_id": "aa34045518f1469a28fa4578240d5f039afa9959c0b95ce3b39674efa691fb21",
   "immutable_parameters": {
     "min_wallfacer_count": 7,
-    "min_candidate_count": 25,
+    "min_miner_count": 25,
     "num_special_accounts": 0,
     "num_special_assets": 0
   }

@@ -90,10 +90,10 @@ namespace graphene { namespace app {
 		return *_transaction_api;
 	}
 
-    fc::api<candidate_api> login_api::candidate() const
+    fc::api<miner_api> login_api::miner() const
     {
-        FC_ASSERT(_candidate_api);
-        return *_candidate_api;
+        FC_ASSERT(_miner_api);
+        return *_miner_api;
     }
     fc::api<localnode_api> login_api::localnode()const
     {
@@ -133,8 +133,8 @@ namespace graphene { namespace app {
        else if( api_name == "debug_api" )
        {
           // can only enable this API if the plugin was loaded
-          if( _app.get_plugin( "debug_candidate" ) )
-             _debug_api = std::make_shared< graphene::debug_candidate::debug_api >( std::ref(_app) );
+          if( _app.get_plugin( "debug_miner" ) )
+             _debug_api = std::make_shared< graphene::debug_miner::debug_api >( std::ref(_app) );
        }
 	   else if (api_name == "crosschain_api")
 	   {
@@ -144,9 +144,9 @@ namespace graphene { namespace app {
 	   {
 		   _transaction_api = std::make_shared<transaction_api>(std::ref(_app));
 	   }
-       else if (api_name == "candidate_api")
+       else if (api_name == "miner_api")
        {
-           _candidate_api = std::make_shared<candidate_api>(std::ref(_app));
+           _miner_api = std::make_shared<miner_api>(std::ref(_app));
        }
        else if (api_name == "localnode_api")
        {
@@ -164,25 +164,25 @@ namespace graphene { namespace app {
 		return ret.generic_string();
 	}
 
-    void candidate_api::start_candidate(bool start)
+    void miner_api::start_miner(bool start)
     {
 
-        auto plu = _app.get_plugin("candidate");
+        auto plu = _app.get_plugin("miner");
         FC_ASSERT(plu.get()!=NULL);
-        candidate_plugin::candidate_plugin* pl = dynamic_cast<candidate_plugin::candidate_plugin*>(plu.get());
+        miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
         pl->set_block_production(start);
 
     }
-	void candidate_api::set_candidate(const map<chain::candidate_id_type, fc::ecc::private_key>& keys, bool add)
+	void miner_api::set_miner(const map<chain::miner_id_type, fc::ecc::private_key>& keys, bool add)
 	{
 		auto cplu = _app.get_plugin("crosschain record"); 
 		crosschain::crosschain_record_plugin* cpl = dynamic_cast<crosschain::crosschain_record_plugin*>(cplu.get());
 		if (!cpl->running()&&keys.size()>0)
 			cpl->startup_whatever();
-		auto plu = _app.get_plugin("candidate");
+		auto plu = _app.get_plugin("miner");
 		FC_ASSERT(plu.get() != NULL);
-		candidate_plugin::candidate_plugin* pl = dynamic_cast<candidate_plugin::candidate_plugin*>(plu.get());
-		pl->set_candidate(keys,add);
+		miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
+		pl->set_miner(keys,add);
 		pl->set_block_production(true);
 	}
     // block_api
@@ -403,7 +403,7 @@ namespace graphene { namespace app {
        return *_asset_api;
     }
 
-    fc::api<graphene::debug_candidate::debug_api> login_api::debug() const
+    fc::api<graphene::debug_miner::debug_api> login_api::debug() const
     {
        FC_ASSERT(_debug_api);
        return *_debug_api;
@@ -438,10 +438,10 @@ namespace graphene { namespace app {
                assert( aobj != nullptr );
                result.push_back( aobj->wallfacer_member_account );
                break;
-            } case candidate_object_type:{
-               const auto& aobj = dynamic_cast<const candidate_object*>(obj);
+            } case miner_object_type:{
+               const auto& aobj = dynamic_cast<const miner_object*>(obj);
                assert( aobj != nullptr );
-               result.push_back( aobj->candidate_account );
+               result.push_back( aobj->miner_account );
                break;
             } case limit_order_object_type:{
                const auto& aobj = dynamic_cast<const limit_order_object*>(obj);

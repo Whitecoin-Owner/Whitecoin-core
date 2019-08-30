@@ -361,16 +361,16 @@ namespace graphene { namespace app {
        void witness_node_stop();
 	   string get_data_dir();
    };
-   class candidate_api
+   class miner_api
    {
    private:
        boost::program_options::variables_map option;
        application& _app;
    public:
-       candidate_api(application& app):_app(app){};
-       ~candidate_api() {};
-       void start_candidate(bool start);
-	   void set_candidate(const map<chain::candidate_id_type, fc::ecc::private_key>& keys, bool add);
+       miner_api(application& app):_app(app){};
+       ~miner_api() {};
+       void start_miner(bool start);
+	   void set_miner(const map<chain::miner_id_type, fc::ecc::private_key>& keys, bool add);
 
    };
    /**
@@ -409,10 +409,10 @@ namespace graphene { namespace app {
          /// @brief Retrieve the asset API
          fc::api<asset_api> asset()const;
          /// @brief Retrieve the debug API (if available)
-         fc::api<graphene::debug_candidate::debug_api> debug()const;
+         fc::api<graphene::debug_miner::debug_api> debug()const;
 	     fc::api<crosschain_api> crosschain_config() const;
 		 fc::api<transaction_api> transaction() const;
-         fc::api<candidate_api> candidate() const;
+         fc::api<miner_api> miner() const;
          fc::api<localnode_api> localnode() const;
          /// @brief Called to enable an API, not reflected.
          void enable_api( const string& api_name );
@@ -428,9 +428,9 @@ namespace graphene { namespace app {
          optional< fc::api<history_api> >  _history_api;
          optional< fc::api<crypto_api> > _crypto_api;
          optional< fc::api<asset_api> > _asset_api;
-         optional< fc::api<graphene::debug_candidate::debug_api> > _debug_api;
+         optional< fc::api<graphene::debug_miner::debug_api> > _debug_api;
 		 optional <fc::api<crosschain_api >>   _crosschain_api;
-         optional <fc::api<candidate_api>>     _candidate_api;
+         optional <fc::api<miner_api>>     _miner_api;
          optional <fc::api<localnode_api>>     _localnode_api;
    };
 
@@ -463,9 +463,9 @@ FC_API(graphene::app::crosschain_api,
 FC_API(graphene::app::block_api,
 	(get_blocks)
 	)
-FC_API(graphene::app::candidate_api,
-    (start_candidate)
-	(set_candidate)
+FC_API(graphene::app::miner_api,
+    (start_miner)
+	(set_miner)
     )
 FC_API(graphene::app::localnode_api,
     (witness_node_stop)
@@ -517,6 +517,6 @@ FC_API(graphene::app::login_api,
        (debug)
 	   (crosschain_config)
 	   (transaction)
-       (candidate)
+       (miner)
        (localnode)
      )

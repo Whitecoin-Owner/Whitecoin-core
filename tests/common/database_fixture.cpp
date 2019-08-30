@@ -81,10 +81,10 @@ database_fixture::database_fixture()
 
    genesis_state.initial_timestamp = time_point_sec( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
 
-   genesis_state.initial_active_candidates = 10;
-   for (uint64_t i = 0; i < genesis_state.initial_active_candidates; ++i)
+   genesis_state.initial_active_miners = 10;
+   for (uint64_t i = 0; i < genesis_state.initial_active_miners; ++i)
    {
-	   auto name = "candidate" + fc::to_string(i);
+	   auto name = "miner" + fc::to_string(i);
 	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 	   
 	   genesis_state.initial_accounts.emplace_back(name,
@@ -92,7 +92,7 @@ database_fixture::database_fixture()
 		   name_key.get_public_key(),
 		   true);
 
-	   genesis_state.initial_candidate_candidates.push_back({ name, name_key.get_public_key() });
+	   genesis_state.initial_miner_miners.push_back({ name, name_key.get_public_key() });
    }
 
    for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARDS; i++)
@@ -106,7 +106,7 @@ database_fixture::database_fixture()
 		   true);
      graphene::chain::genesis_state_type::initial_committee_member_type test_gaurd;
      test_gaurd.owner_name=name;
-	   genesis_state.initial_wallfacer_candidates.push_back(test_gaurd);
+	   genesis_state.initial_wallfacer_miners.push_back(test_gaurd);
 
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
@@ -228,7 +228,7 @@ void database_fixture::verify_asset_supplies( const database& db )
    for( const fba_accumulator_object& fba : db.get_index_type< simple_index< fba_accumulator_object > >() )
       total_balances[ asset_id_type() ] += fba.accumulated_fba_fees;
 
-   total_balances[asset_id_type()] += db.get_dynamic_global_properties().candidate_budget;
+   total_balances[asset_id_type()] += db.get_dynamic_global_properties().miner_budget;
    
    for( const auto& item : total_delnk )
    {
@@ -341,7 +341,7 @@ signed_block database_fixture::generate_block(uint32_t skip, const fc::ecc::priv
    skip |= database::skip_undo_history_check;
    // skip == ~0 will skip checks specified in database::validation_steps
    auto block = db.generate_block(db.get_slot_time(miss_blocks + 1),
-                            db.get_scheduled_candidate(miss_blocks + 1),
+                            db.get_scheduled_miner(miss_blocks + 1),
                             key, skip);
    db.clear_pending();
    return block;
@@ -456,14 +456,14 @@ const account_object& database_fixture::get_account( const string& name )const
    assert( itr != idx.end() );
    return *itr;
 }
-const candidate_id_type database_fixture::get_candidate(const string& name)const
+const miner_id_type database_fixture::get_miner(const string& name)const
 {
 	const auto& idx = db.get_index_type<account_index>().indices().get<by_name>();
 	const auto itr = idx.find(name);
 	assert(itr != idx.end());
-	const auto& candidate_idx = db.get_index_type<candidate_index>().indices().get<by_account>();
-	const auto iter = candidate_idx.find(itr->get_id());
-	assert(iter != candidate_idx.end());
+	const auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
+	const auto iter = miner_idx.find(itr->get_id());
+	assert(iter != miner_idx.end());
 	return iter->id;
 }
 const asset_object& database_fixture::create_bitasset(
@@ -692,22 +692,22 @@ const wallfacer_member_object& database_fixture::create_wallfacer_member( const 
    return db.get<wallfacer_member_object>(ptx.operation_results[0].get<object_id_type>());
 }
 
-const candidate_object&database_fixture::create_candidate(account_id_type owner, const fc::ecc::private_key& signing_private_key)
+const miner_object&database_fixture::create_miner(account_id_type owner, const fc::ecc::private_key& signing_private_key)
 {
-   return create_candidate(owner(db), signing_private_key);
+   return create_miner(owner(db), signing_private_key);
 }
 
-const candidate_object& database_fixture::create_candidate( const account_object& owner,
+const miner_object& database_fixture::create_miner( const account_object& owner,
                                                         const fc::ecc::private_key& signing_private_key )
 { try {
-   candidate_create_operation op;
-   op.candidate_account = owner.id;
+   miner_create_operation op;
+   op.miner_account = owner.id;
    op.block_signing_key = signing_private_key.get_public_key();
    trx.operations.push_back(op);
    trx.validate();
    processed_transaction ptx = db.push_transaction(trx, ~0);
    trx.clear();
-   return db.get<candidate_object>(ptx.operation_results[0].get<object_id_type>());
+   return db.get<miner_object>(ptx.operation_results[0].get<object_id_type>());
 } FC_CAPTURE_AND_RETHROW() }
 
 uint64_t database_fixture::fund(
@@ -1080,8 +1080,8 @@ int64_t database_fixture::get_balance( account_id_type account, asset_id_type a 
 {
   return db.get_balance(account, a).amount.value;
 }
-asset database_fixture::get_lock_balance(account_id_type owner, candidate_id_type candidate, asset_id_type asset_id)const {
-	return db.get_lock_balance(owner, candidate,asset_id);
+asset database_fixture::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id)const {
+	return db.get_lock_balance(owner, miner,asset_id);
 }
 asset database_fixture::get_wallfacer_lock_balance(wallfacer_member_id_type wallfacer, asset_id_type asset_id)const {
 	return db.get_wallfacer_lock_balance(wallfacer, asset_id);

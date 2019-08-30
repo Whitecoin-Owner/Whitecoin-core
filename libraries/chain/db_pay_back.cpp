@@ -4,21 +4,21 @@
 
 namespace graphene {
 	namespace chain {
-		void database::adjust_pay_back_balance(address payback_owner, asset payback_asset,candidate_id_type candidate_id) {
+		void database::adjust_pay_back_balance(address payback_owner, asset payback_asset,miner_id_type miner_id) {
 			try {
 				if (payback_asset.amount == 0) {
 					return;
 				}
-				auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address_candidate>();
-				auto itr = payback_db.find(boost::make_tuple(payback_owner, candidate_id));
+				auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address_miner>();
+				auto itr = payback_db.find(boost::make_tuple(payback_owner, miner_id));
 				auto& asset_db = get_index_type<asset_index>().indices().get<by_id>();
 				auto asset_iter = asset_db.find(payback_asset.asset_id);
 
 				FC_ASSERT(asset_iter != asset_db.end(), "this asset doesnt exist");
 				if (itr == payback_db.end()) {
 					FC_ASSERT(payback_asset.amount > 0, "lock balance error");
-					create<pay_back_object>([payback_owner, payback_asset, candidate_id](pay_back_object& a) {
-						a.candidate_id = candidate_id;
+					create<pay_back_object>([payback_owner, payback_asset, miner_id](pay_back_object& a) {
+						a.miner_id = miner_id;
 						a.one_owner_balance = payback_asset;
 						a.pay_back_owner = payback_owner;
 					});
@@ -41,9 +41,9 @@ namespace graphene {
 					if (symbol_type == "") {
 						
 						if (payback_address_iter.one_owner_balance > asset(0)) {
-							auto candidate_obj = get(payback_address_iter.candidate_id);
-							auto candidate_acc = get(candidate_obj.candidate_account);
-							results[candidate_acc.name] = payback_address_iter.one_owner_balance;
+							auto miner_obj = get(payback_address_iter.miner_id);
+							auto miner_acc = get(miner_obj.miner_account);
+							results[miner_acc.name] = payback_address_iter.one_owner_balance;
 						}
 							
 					}
@@ -52,9 +52,9 @@ namespace graphene {
 						auto obj = get_asset(symbol_type);
 						FC_ASSERT(obj.valid());
 						if (payback_address_iter.one_owner_balance.asset_id == obj->get_id() && payback_address_iter.one_owner_balance.amount > 0) {
-							auto candidate_obj = get(payback_address_iter.candidate_id);
-							auto candidate_acc = get(candidate_obj.candidate_account);
-							results[candidate_acc.name] = payback_address_iter.one_owner_balance;
+							auto miner_obj = get(payback_address_iter.miner_id);
+							auto miner_acc = get(miner_obj.miner_account);
+							results[miner_acc.name] = payback_address_iter.one_owner_balance;
 						}
 							
 						

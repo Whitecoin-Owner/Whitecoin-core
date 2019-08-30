@@ -80,7 +80,7 @@ namespace graphene { namespace chain {
    * Currently the only field which can be updated is the `url`
    * field.
    */
-   struct candidate_referendum_wallfacer_operation : public base_operation
+   struct miner_referendum_wallfacer_operation : public base_operation
    {
 	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_XWCCHAIN_PRECISION; };
 
@@ -147,9 +147,9 @@ FC_REFLECT( graphene::chain::wallfacer_member_create_operation::fee_parameters_t
 FC_REFLECT( graphene::chain::wallfacer_member_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::wallfacer_member_resign_operation::fee_parameters_type, (fee) )
-FC_REFLECT(graphene::chain::candidate_referendum_wallfacer_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::miner_referendum_wallfacer_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation::fee_parameters_type,(fee))
-FC_REFLECT(graphene::chain::candidate_referendum_wallfacer_operation,(fee)(replace_queue))
+FC_REFLECT(graphene::chain::miner_referendum_wallfacer_operation,(fee)(replace_queue))
 FC_REFLECT( graphene::chain::wallfacer_member_create_operation, (fee)(wallfacer_member_account)(fee_pay_address)(guarantee_id) )
 FC_REFLECT( graphene::chain::wallfacer_member_update_operation, (fee)(replace_queue))
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );

@@ -67,7 +67,7 @@ namespace graphene { namespace chain {
          enum validation_steps
          {
             skip_nothing                = 0,
-            skip_candidate_signature      = 1 << 0,  ///< used while reindexing
+            skip_miner_signature      = 1 << 0,  ///< used while reindexing
             skip_transaction_signatures = 1 << 1,  ///< used by non-witness nodes
             skip_transaction_dupe_check = 1 << 2,  ///< used while reindexing
             skip_fork_db                = 1 << 3,  ///< used while reindexing
@@ -129,13 +129,13 @@ namespace graphene { namespace chain {
          optional<signed_block>     fetch_block_by_number( uint32_t num )const;
          const signed_transaction&  get_recent_transaction( const transaction_id_type& trx_id )const;
          std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const;
-		 optional<candidate_object>     get_candidate_obj(const address& addr) const;
-		 vector<candidate_object>     get_candidate_objs(const vector<address>& addr) const;
+		 optional<miner_object>     get_miner_obj(const address& addr) const;
+		 vector<miner_object>     get_miner_objs(const vector<address>& addr) const;
          /**
           *  Calculate the percent of block production slots that were missed in the
           *  past 128 blocks, not including the current block.
           */
-         uint32_t candidate_participation_rate()const;
+         uint32_t miner_participation_rate()const;
 
          void                              add_checkpoints( const flat_map<uint32_t,block_id_type>& checkpts );
          const flat_map<uint32_t,block_id_type> get_checkpoints()const { return _checkpoints; }
@@ -153,13 +153,13 @@ namespace graphene { namespace chain {
 		 void clear_votes();
          signed_block generate_block(
             const fc::time_point_sec when,
-            candidate_id_type candidate_id,
+            miner_id_type miner_id,
             const fc::ecc::private_key& block_signing_private_key,
             uint32_t skip
             );
          signed_block _generate_block(
             const fc::time_point_sec when,
-            candidate_id_type candidate_id,
+            miner_id_type miner_id,
             const fc::ecc::private_key& block_signing_private_key
             );
 
@@ -231,7 +231,7 @@ namespace graphene { namespace chain {
           *
           * Passing slot_num == 0 returns GRAPHENE_NULL_WITNESS
           */
-         candidate_id_type get_scheduled_candidate(uint32_t slot_num)const;
+         miner_id_type get_scheduled_miner(uint32_t slot_num)const;
 
          /**
           * Get the time at which the given slot occurs.
@@ -253,12 +253,12 @@ namespace graphene { namespace chain {
           */
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
-         void update_candidate_schedule();
+         void update_miner_schedule();
 
-		 void pay_candidate(const candidate_id_type& candidate_id,asset fee);
+		 void pay_miner(const miner_id_type& miner_id,asset fee);
 		 asset get_fee_from_block(const signed_block& b);
 		 void update_fee_pool();
-		 share_type get_candidate_pay_per_block(uint32_t block_num);
+		 share_type get_miner_pay_per_block(uint32_t block_num);
 
 		 void reset_current_collected_fee();
 
@@ -282,7 +282,7 @@ namespace graphene { namespace chain {
          time_point_sec   head_block_time()const;
          uint32_t         head_block_num()const;
          block_id_type    head_block_id()const;
-         candidate_id_type  head_block_witness()const;
+         miner_id_type  head_block_witness()const;
 
          decltype( chain_parameters::block_interval ) block_interval( )const;
 
@@ -304,22 +304,22 @@ namespace graphene { namespace chain {
                operation::tag<typename EvaluatorType::operation_type>::value].reset( new op_evaluator_impl<EvaluatorType>() );
          }
 		 //////////////////// db_pay_back.cpp/////////////////
-		 void adjust_pay_back_balance(address payback_owner, asset payback_asset, candidate_id_type candidate_id = candidate_id_type(0));
+		 void adjust_pay_back_balance(address payback_owner, asset payback_asset, miner_id_type miner_id = miner_id_type(0));
 	     void adjust_bonus_balance(address bonus_owner, asset bonus);
 		 std::map<string, share_type> get_bonus_balance(address owner)const;
 		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
 		 //////////////////// db_lock_balance.cpp/////////////////
-		 asset get_lock_balance(account_id_type owner,candidate_id_type candidate, asset_id_type asset_id)const;
+		 asset get_lock_balance(account_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
 		 vector<lockbalance_object> get_lock_balance(account_id_type owner, asset_id_type asset_id)const;
 		 asset get_wallfacer_lock_balance(wallfacer_member_id_type wallfacer, asset_id_type asset_id)const;
 		 //asset get_lock_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 //asset get_lock_balance(const address& addr, const asset_id_type asset_id) const;
-		 void adjust_lock_balance(candidate_id_type candidate_account, account_id_type lock_account, asset delta);
+		 void adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account, asset delta);
 		 void adjust_wallfacer_lock_balance(wallfacer_member_id_type wallfacer_account,asset delta);
 		 ////////db_crosschain_trx.cpp/////////////
-		 void create_result_transaction(candidate_id_type candidate, fc::ecc::private_key pk);
-		 void combine_sign_transaction(candidate_id_type candidate, fc::ecc::private_key pk);
-		 void create_acquire_crosschhain_transaction(candidate_id_type candidate, fc::ecc::private_key pk);
+		 void create_result_transaction(miner_id_type miner, fc::ecc::private_key pk);
+		 void combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
+		 void create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk);
 		 void adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
 			 transaction_id_type transaction_id,
 			 signed_transaction real_transaction,
@@ -335,8 +335,8 @@ namespace graphene { namespace chain {
 			 transaction_id_type current_trx_id,
 			 signed_transaction current_trx,
 			 uint64_t op_type);
-		 void create_coldhot_transfer_trx(candidate_id_type candidate, fc::ecc::private_key pk);
-		 void combine_coldhot_sign_transaction(candidate_id_type candidate, fc::ecc::private_key pk);
+		 void create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk);
+		 void combine_coldhot_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
 
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
@@ -462,7 +462,7 @@ namespace graphene { namespace chain {
          // helper to handle cashback rewards
          void deposit_cashback(const account_object& acct, share_type amount, bool require_vesting = true);
          // helper to handle witness pay
-         void deposit_candidate_pay(const candidate_object& wit, share_type amount);
+         void deposit_miner_pay(const miner_object& wit, share_type amount);
 		 unique_ptr<op_evaluator>& get_evaluator(const operation& op);
          //////////////////// db_debug.cpp ////////////////////
 
@@ -476,7 +476,7 @@ namespace graphene { namespace chain {
          void globally_settle_asset( const asset_object& bitasset, const price& settle_price );
          void cancel_order(const force_settlement_object& order, bool create_virtual_op = true);
          void cancel_order(const limit_order_object& order, bool create_virtual_op = true);
-		 map<account_id_type, vector<asset>> get_candidate_lockbalance_info(const candidate_id_type& id) const;
+		 map<account_id_type, vector<asset>> get_miner_lockbalance_info(const miner_id_type& id) const;
          
          /**
           * @brief Process a new limit order through the markets
@@ -573,13 +573,13 @@ namespace graphene { namespace chain {
          ///Steps involved in applying a new block
          ///@{
 
-         const candidate_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
-         const candidate_object& _validate_block_header( const signed_block& next_block )const;
+         const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
+         const miner_object& _validate_block_header( const signed_block& next_block )const;
          void create_block_summary(const signed_block& next_block);
 
          //////////////////// db_update.cpp ////////////////////
          void update_global_dynamic_data( const signed_block& b );
-         void update_signing_candidate(const candidate_object& signing_witness, const signed_block& new_block);
+         void update_signing_miner(const miner_object& signing_witness, const signed_block& new_block);
          void update_last_irreversible_block();
          void clear_expired_transactions();
          void clear_expired_proposals();
@@ -600,7 +600,7 @@ namespace graphene { namespace chain {
          void pay_workers( share_type& budget );
          void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
 		 void process_name_transfer();
-         void update_active_candidates();
+         void update_active_miners();
          void update_active_committee_members();
          void update_worker_votes();
          template<class... Types>

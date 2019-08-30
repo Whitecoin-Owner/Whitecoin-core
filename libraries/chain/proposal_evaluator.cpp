@@ -252,7 +252,7 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
       for( auto& op : _proposed_trx.operations )
          operation_get_required_authorities(op, required_active, proposal.required_owner_approvals, other);
 	  proposal.proposer = o.proposer;
-      //proposal should only be approved by wallfacer or candidates
+      //proposal should only be approved by wallfacer or miners
 	  const auto& acc = d.get_index_type<account_index>().indices().get<by_id>();
 	  if (o.type == vote_id_type::committee)
 	  {
@@ -276,11 +276,11 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 	  }
 	  else
 	  {
-		  const auto& iter = d.get_index_type<candidate_index>().indices().get<by_account>();
-		  std::for_each(iter.begin(), iter.end(), [&](const candidate_object& a)
+		  const auto& iter = d.get_index_type<miner_index>().indices().get<by_account>();
+		  std::for_each(iter.begin(), iter.end(), [&](const miner_object& a)
 
 		  {
-			  proposal.required_account_approvals.insert(acc.find(a.candidate_account)->addr);
+			  proposal.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 		  });
 	  }
    });
@@ -339,13 +339,13 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
    d.modify(*_proposal, [&o, &d](proposal_object& p) {
 	  //FC_ASSERT(p.required_account_approvals(););
 	  
-	   auto is_candidate_or_wallfacer = [&](const address& addr)->bool {
+	   auto is_miner_or_wallfacer = [&](const address& addr)->bool {
 		   return p.required_account_approvals.find(addr) != p.required_account_approvals.end();
 	   };
 
 	   for (const auto& addr : o.key_approvals_to_add)
 	   {
-		   if (!is_candidate_or_wallfacer(addr))
+		   if (!is_miner_or_wallfacer(addr))
 			   continue;
 		   p.approved_key_approvals.insert(addr);
 		   p.disapproved_key_approvals.erase(addr);
@@ -353,7 +353,7 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
 	   
 	   for( const auto& addr : o.key_approvals_to_remove )
 	   {
-		   if (!is_candidate_or_wallfacer(addr))
+		   if (!is_miner_or_wallfacer(addr))
 			   continue;
 		   p.disapproved_key_approvals.insert(addr);
 		   p.approved_key_approvals.erase(addr);

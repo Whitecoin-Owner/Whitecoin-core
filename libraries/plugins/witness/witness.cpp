@@ -36,7 +36,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include <iostream>
 
-using namespace graphene::candidate_plugin;
+using namespace graphene::miner_plugin;
 using std::string;
 using std::vector;
 
@@ -69,7 +69,7 @@ void set_operation_fees(signed_transaction& tx, const fee_schedule& s)
 		s.set_fee(op);
 }
 
-void candidate_plugin::plugin_set_program_options(
+void miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& command_line_options,
    boost::program_options::options_description& config_file_options)
 {
@@ -79,7 +79,7 @@ void candidate_plugin::plugin_set_program_options(
 	(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
    for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
    {
-	   auto name = "candidate" + fc::to_string(i);
+	   auto name = "miner" + fc::to_string(i);
 	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 	   vec.push_back
 	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
@@ -93,7 +93,7 @@ void candidate_plugin::plugin_set_program_options(
 	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
    }*/
 
-   string candidate_id_example = fc::json::to_string(chain::candidate_id_type(5));
+   string miner_id_example = fc::json::to_string(chain::miner_id_type(5));
    vector<string> chain_type;
    chain_type.push_back("BTC");
    chain_type.push_back("BCH");
@@ -104,9 +104,9 @@ void candidate_plugin::plugin_set_program_options(
    chain_type.push_back("USDT");
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
-         ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_candidate_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of candidates (0-99) that must be participating in order to produce blocks")
-         ("candidate-id,w", bpo::value<vector<string>>()->composing()->multitoken(),
-          ("ID of candidate controlled by this node (e.g. " + candidate_id_example + ", quotes are required, may specify one times)").c_str())
+         ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
+         ("miner-id,w", bpo::value<vector<string>>()->composing()->multitoken(),
+          ("ID of miner controlled by this node (e.g. " + miner_id_example + ", quotes are required, may specify one times)").c_str())
          ("private-key", bpo::value<string>()->composing()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
@@ -117,16 +117,16 @@ void candidate_plugin::plugin_set_program_options(
    config_file_options.add(command_line_options);
 }
 
-std::string candidate_plugin::plugin_name()const
+std::string miner_plugin::plugin_name()const
 {
-   return "candidate";
+   return "miner";
 }
 
-void candidate_plugin::plugin_initialize(const boost::program_options::variables_map& options)
+void miner_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 { try {
-   ilog("candidate plugin:  plugin_initialize() begin");
+   ilog("miner plugin:  plugin_initialize() begin");
    _options = &options;
-   LOAD_VALUE_SET(options, "candidate-id", _candidates, chain::candidate_id_type)
+   LOAD_VALUE_SET(options, "miner-id", _miners, chain::miner_id_type)
 
    if( options.count("private-key") )
    {
@@ -161,17 +161,17 @@ void candidate_plugin::plugin_initialize(const boost::program_options::variables
    {
        min_gas_price = 1;
    }
-   ilog("candidate plugin:  plugin_initialize() end");
+   ilog("miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }
 
-void candidate_plugin::plugin_startup()
+void miner_plugin::plugin_startup()
 { try {
-   ilog("candidate plugin:  plugin_startup() begin");
+   ilog("miner plugin:  plugin_startup() begin");
    chain::database& d = database();
 
-   if( !_candidates.empty() )
+   if( !_miners.empty() )
    {
-      ilog("Launching block production for ${n} mining.", ("n", _candidates.size()));
+      ilog("Launching block production for ${n} mining.", ("n", _miners.size()));
       app().set_block_production(true);
       if( _production_enabled )
       {
@@ -181,11 +181,11 @@ void candidate_plugin::plugin_startup()
       }
       schedule_production_loop();
    } else
-      elog("No candidates configured! Please add candidate IDs and private keys to configuration.");
-   ilog("candidate plugin:  plugin_startup() end");
+      elog("No miners configured! Please add miner IDs and private keys to configuration.");
+   ilog("miner plugin:  plugin_startup() end");
 } FC_CAPTURE_AND_RETHROW() }
 
-void candidate_plugin::plugin_shutdown()
+void miner_plugin::plugin_shutdown()
 {
 	try {
 		if (_block_production_task.valid())
@@ -199,7 +199,7 @@ void candidate_plugin::plugin_shutdown()
 	}
 }
 
-void candidate_plugin::schedule_production_loop()
+void miner_plugin::schedule_production_loop()
 {
    //Schedule for the next second's tick regardless of chain state
    // If we would wait less than 50ms, wait for the whole second.
@@ -214,7 +214,7 @@ void candidate_plugin::schedule_production_loop()
                                          next_wakeup, "Miner Block Production",fc::priority::max());
 }
 
-block_production_condition::block_production_condition_enum candidate_plugin::block_production_loop()
+block_production_condition::block_production_condition_enum miner_plugin::block_production_loop()
 {
    block_production_condition::block_production_condition_enum result;
    fc::mutable_variant_object capture;
@@ -251,13 +251,13 @@ block_production_condition::block_production_condition_enum candidate_plugin::bl
          ilog("Not producing block because I don't have the private key for ${scheduled_key}", (capture) );
          break;
       case block_production_condition::low_participation:
-         elog("Not producing block because node appears to be on a minority fork with only ${pct}% candidate participation", (capture) );
+         elog("Not producing block because node appears to be on a minority fork with only ${pct}% miner participation", (capture) );
          break;
       case block_production_condition::lag:
          elog("Not producing block because node didn't wake up within 500ms of the slot time.");
          break;
       case block_production_condition::consecutive:
-         elog("Not producing block because the last block was generated by the same candidate.\nThis node is probably disconnected from the network so block production has been disabled.\nDisable this check with --allow-consecutive option.");
+         elog("Not producing block because the last block was generated by the same miner.\nThis node is probably disconnected from the network so block production has been disabled.\nDisable this check with --allow-consecutive option.");
          break;
       case block_production_condition::exception_producing_block:
          elog( "exception prodcing block" );
@@ -271,7 +271,7 @@ block_production_condition::block_production_condition_enum candidate_plugin::bl
    schedule_production_loop();
    return result;
 }
-void candidate_plugin::check_eths_generate_multi_addr(candidate_id_type candidate, fc::ecc::private_key pk) {
+void miner_plugin::check_eths_generate_multi_addr(miner_id_type miner, fc::ecc::private_key pk) {
 
 	try {
 		chain::database& db = database();
@@ -290,11 +290,11 @@ void candidate_plugin::check_eths_generate_multi_addr(candidate_id_type candidat
 			}
 		}
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		const auto& candidates = db.get_index_type<candidate_index>().indices().get<by_id>();
-		auto iter = candidates.find(candidate);
-		auto accid = iter->candidate_account;
+		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
+		auto iter = miners.find(miner);
+		auto accid = iter->miner_account;
 		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
-		auto candidate_addr = accounts.find(accid)->addr;
+		auto miner_addr = accounts.find(accid)->addr;
 		for (auto mul_acc : multi_account_state){
 			if (mul_acc.second == 2){
 				const auto&  mul_acc_db = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_mulaccount_trx_id>();
@@ -309,11 +309,11 @@ void candidate_plugin::check_eths_generate_multi_addr(candidate_id_type candidat
 				cold_trx_id.push_back(multi_withsign_trx->cold_sol_trx_id);
 				auto hot_contract_address = crosschain_interface->create_multi_sig_account("get_contract_address", hot_trx_id,0);
 				auto cold_contract_address = crosschain_interface->create_multi_sig_account("get_contract_address", cold_trx_id, 0);
-				candidate_generate_multi_asset_operation op;
+				miner_generate_multi_asset_operation op;
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = db.get_dynamic_global_properties();
-				op.candidate = candidate;
-				op.candidate_address = candidate_addr;
+				op.miner = miner;
+				op.miner_address = miner_addr;
 				op.multi_address_cold = cold_contract_address["contract_address"];
 				op.multi_redeemScript_cold = mul_acc.first;
 				op.multi_address_hot = hot_contract_address["contract_address"];
@@ -330,7 +330,7 @@ void candidate_plugin::check_eths_generate_multi_addr(candidate_id_type candidat
 		}
 	}FC_CAPTURE_AND_LOG((0));
 }
-fc::variant candidate_plugin::check_generate_multi_addr(candidate_id_type candidate,fc::ecc::private_key pk)
+fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc::private_key pk)
 {
 	chain::database& db = database();
 	try {
@@ -338,11 +338,11 @@ fc::variant candidate_plugin::check_generate_multi_addr(candidate_id_type candid
 		const auto& wallfacer_ids = db.get_wallfacer_members();
 		const auto& symbols = db.get_index_type<asset_index>().indices().get<by_symbol>();
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		const auto& candidates = db.get_index_type<candidate_index>().indices().get<by_id>();
-		auto iter = candidates.find(candidate);
-		auto accid = iter->candidate_account;
+		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
+		auto iter = miners.find(miner);
+		auto accid = iter->miner_account;
 		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
-		auto candidate_addr = accounts.find(accid)->addr;
+		auto miner_addr = accounts.find(accid)->addr;
 		auto func = [&wallfacer_ids](account_id_type id)->bool {
 			for (const auto wallfacer : wallfacer_ids)
 			{
@@ -441,9 +441,9 @@ fc::variant candidate_plugin::check_generate_multi_addr(candidate_id_type candid
 						eth_series_multi_sol_create_operation op;
 						uint32_t expiration_time_offset = 0;
 						auto dyn_props = db.get_dynamic_global_properties();
-						op.candidate_broadcast = candidate;
+						op.miner_broadcast = miner;
 						op.chain_type = iter.symbol;
-						op.candidate_broadcast_addrss = candidate_addr;
+						op.miner_broadcast_addrss = miner_addr;
 						op.multi_cold_address = temp_address_cold;
 						op.multi_hot_address = temp_address_hot;
 						op.multi_account_tx_without_sign_cold = cold_without_sign;
@@ -467,11 +467,11 @@ fc::variant candidate_plugin::check_generate_multi_addr(candidate_id_type candid
 				}
 				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_cold", symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
 				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
-				candidate_generate_multi_asset_operation op;
+				miner_generate_multi_asset_operation op;
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = db.get_dynamic_global_properties();
-				op.candidate = candidate;
-				op.candidate_address = candidate_addr;
+				op.miner = miner;
+				op.miner_address = miner_addr;
 				op.multi_address_cold = multi_addr_cold_obj["address"];
 				op.multi_redeemScript_cold = multi_addr_cold_obj["redeemScript"];
 				op.multi_address_hot = multi_addr_hot_obj["address"];
@@ -489,15 +489,15 @@ fc::variant candidate_plugin::check_generate_multi_addr(candidate_id_type candid
 	return fc::variant();
 }
 
-void candidate_plugin::check_multi_transfer(candidate_id_type candidate, fc::ecc::private_key pk)
+void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_key pk)
 {
 	chain::database& db = database();
 	try {
-		const auto& candidates = db.get_index_type<candidate_index>().indices().get<by_id>();
-		auto iter = candidates.find(candidate);
-		auto accid = iter->candidate_account;
+		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
+		auto iter = miners.find(miner);
+		auto accid = iter->miner_account;
 		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
-		auto candidate_addr = accounts.find(accid)->addr;
+		auto miner_addr = accounts.find(accid)->addr;
 		const auto& wallfacer_ids = db.get_global_properties().active_committee_members;
 		const auto& transfers = db.get_index_type<crosschain_transfer_index>().indices().get<by_status>();
 		uint32_t expiration_time_offset = 0;
@@ -507,9 +507,9 @@ void candidate_plugin::check_multi_transfer(candidate_id_type candidate, fc::ecc
 		{
 			if (transfer.signatures.size() >= (wallfacer_ids.size() * 2 / 3 + 1))
 			{
-				candidate_merge_signatures_operation op;
-				op.candidate = candidate;
-				op.candidate_address = candidate_addr;
+				miner_merge_signatures_operation op;
+				op.miner = miner;
+				op.miner_address = miner_addr;
 				op.chain_type = transfer.chain_type;
 				op.id = transfer.id;
 				signed_transaction trx;
@@ -526,21 +526,21 @@ void candidate_plugin::check_multi_transfer(candidate_id_type candidate, fc::ecc
 }
 
 
-void candidate_plugin::set_candidate(const map<graphene::chain::candidate_id_type,fc::ecc::private_key>& keys, bool add )
+void miner_plugin::set_miner(const map<graphene::chain::miner_id_type,fc::ecc::private_key>& keys, bool add )
 {
-	fc::scoped_lock<std::mutex> lock(_candidate_lock);
+	fc::scoped_lock<std::mutex> lock(_miner_lock);
 	chain::database& db = database();
 	if (add == false)
 	{
-		_candidates.clear();
+		_miners.clear();
 		_private_keys.clear();
 	}
 	for (auto key : keys)
 	{
 		auto prikey = key.second;
 		auto pubkey = public_key_type(prikey.get_public_key());
-		FC_ASSERT(key.first(db).signing_key == pubkey,"the key is not belong to any candidate");
-		_candidates.insert(key.first);
+		FC_ASSERT(key.first(db).signing_key == pubkey,"the key is not belong to any miner");
+		_miners.insert(key.first);
 		_private_keys.insert(std::make_pair(pubkey,prikey));
 	}
 	if (!_block_production_task.valid())
@@ -548,9 +548,9 @@ void candidate_plugin::set_candidate(const map<graphene::chain::candidate_id_typ
 		schedule_production_loop();
 	}
 }
-block_production_condition::block_production_condition_enum candidate_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
+block_production_condition::block_production_condition_enum miner_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
 {
-	fc::scoped_lock<std::mutex> lock(_candidate_lock);
+	fc::scoped_lock<std::mutex> lock(_miner_lock);
    chain::database& db = database();
    if(db.stop_process)
 	   return block_production_condition::stopped;
@@ -583,16 +583,16 @@ block_production_condition::block_production_condition_enum candidate_plugin::ma
    //
    assert( now > db.head_block_time() );
    
-   graphene::chain::candidate_id_type scheduled_candidate = db.get_scheduled_candidate( slot );
-   // we must control the candidate scheduled to produce the next block.
-   if( _candidates.find( scheduled_candidate ) == _candidates.end() )
+   graphene::chain::miner_id_type scheduled_miner = db.get_scheduled_miner( slot );
+   // we must control the miner scheduled to produce the next block.
+   if( _miners.find( scheduled_miner ) == _miners.end() )
    {
-      capture("scheduled_candidate", scheduled_candidate);
+      capture("scheduled_miner", scheduled_miner);
       return block_production_condition::not_my_turn;
    }
 
    fc::time_point_sec scheduled_time = db.get_slot_time( slot );
-   graphene::chain::public_key_type scheduled_key = scheduled_candidate( db ).signing_key;
+   graphene::chain::public_key_type scheduled_key = scheduled_miner( db ).signing_key;
    auto private_key_itr = _private_keys.find( scheduled_key );
 
    if( private_key_itr == _private_keys.end() )
@@ -601,8 +601,8 @@ block_production_condition::block_production_condition_enum candidate_plugin::ma
       return block_production_condition::no_private_key;
    }
 
-   uint32_t prate = db.candidate_participation_rate();
-   if( prate < _required_candidate_participation )
+   uint32_t prate = db.miner_participation_rate();
+   if( prate < _required_miner_participation )
    {
       capture("pct", uint32_t(100*uint64_t(prate) / GRAPHENE_1_PERCENT));
       return block_production_condition::low_participation;
@@ -614,18 +614,18 @@ block_production_condition::block_production_condition_enum candidate_plugin::ma
       return block_production_condition::lag;
    }
    //through this to generate new multi-addr
-   auto varient_obj = check_generate_multi_addr(scheduled_candidate, private_key_itr->second);
-   check_eths_generate_multi_addr(scheduled_candidate, private_key_itr->second);
-   db.create_coldhot_transfer_trx(scheduled_candidate, private_key_itr->second);
-   db.combine_coldhot_sign_transaction(scheduled_candidate, private_key_itr->second);
-   db.create_result_transaction(scheduled_candidate, private_key_itr->second);
-   db.combine_sign_transaction(scheduled_candidate, private_key_itr->second);
-   db.create_acquire_crosschhain_transaction(scheduled_candidate, private_key_itr->second);
-   //check_multi_transfer(scheduled_candidate, private_key_itr->second);
+   auto varient_obj = check_generate_multi_addr(scheduled_miner, private_key_itr->second);
+   check_eths_generate_multi_addr(scheduled_miner, private_key_itr->second);
+   db.create_coldhot_transfer_trx(scheduled_miner, private_key_itr->second);
+   db.combine_coldhot_sign_transaction(scheduled_miner, private_key_itr->second);
+   db.create_result_transaction(scheduled_miner, private_key_itr->second);
+   db.combine_sign_transaction(scheduled_miner, private_key_itr->second);
+   db.create_acquire_crosschhain_transaction(scheduled_miner, private_key_itr->second);
+   //check_multi_transfer(scheduled_miner, private_key_itr->second);
    //generate blocks
    auto block = db.generate_block(
       scheduled_time,
-	   scheduled_candidate,
+	   scheduled_miner,
       private_key_itr->second,
       _production_skip_flags
       );

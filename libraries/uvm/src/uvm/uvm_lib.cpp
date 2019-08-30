@@ -79,7 +79,7 @@ namespace uvm
                 "next", "rawequal", "rawlen", "rawget", "rawset", "select",
                 "setmetatable",
 				"hex_to_bytes", "bytes_to_hex", "sha256_hex", "sha1_hex", "sha3_hex", "ripemd160_hex", "get_address_role",
-				"get_pay_back_balance", "get_contract_lock_balance_info_by_asset", "get_contract_lock_balance_info", "foreclose_balance_from_candidates", "obtain_pay_back_balance", "lock_contract_balance_to_candidate",
+				"get_pay_back_balance", "get_contract_lock_balance_info_by_asset", "get_contract_lock_balance_info", "foreclose_balance_from_miners", "obtain_pay_back_balance", "lock_contract_balance_to_miner",
 				"cbor_encode", "cbor_decode", "signature_recover", "get_address_role","send_message"
             };
 
@@ -848,28 +848,28 @@ namespace uvm
                 return 1;
             }
 
-			//lock_contract_balance_to_candidate(symbol,amount,candidate_id)
-			static int lock_contract_balance_to_candidate(lua_State *L)
+			//lock_contract_balance_to_miner(symbol,amount,miner_id)
+			static int lock_contract_balance_to_miner(lua_State *L)
 			{
 				if (lua_gettop(L) < 3)
 				{
-					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "lock_contract_balance_to_candidate need 4 arguments");
+					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "lock_contract_balance_to_miner need 4 arguments");
 					return 0;
 				}
 				const char *contract_id = get_storage_contract_id_in_api(L);
 				if (!contract_id)
 				{
-					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "lock_contract_balance_to_candidate must be called in contract api");
+					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "lock_contract_balance_to_miner must be called in contract api");
 					return 0;
 				}
 				const char *asset_sym = luaL_checkstring(L, 1);
 				const char *asset_amount = luaL_checkstring(L, 2);
 				auto mid = luaL_checkstring(L, 3);
-				int transfer_result = uvm::lua::api::global_uvm_chain_api->lock_contract_balance_to_candidate(L, contract_id, asset_sym, asset_amount, mid);
+				int transfer_result = uvm::lua::api::global_uvm_chain_api->lock_contract_balance_to_miner(L, contract_id, asset_sym, asset_amount, mid);
 				lua_pushboolean(L, transfer_result);
 				return 1;
 			}
-			//obtain_pay_back_balance(candidate_id,asset_sym,asset_amount)
+			//obtain_pay_back_balance(miner_id,asset_sym,asset_amount)
 			static int obtain_pay_back_balance(lua_State *L)
 			{
 				if (lua_gettop(L) < 3)
@@ -891,25 +891,25 @@ namespace uvm
 				lua_pushboolean(L, transfer_result);
 				return 1;
 			}
-			//foreclose_balance_from_candidates(candidate_id,asset_sym,asset_amount)
-			static int foreclose_balance_from_candidates(lua_State *L)
+			//foreclose_balance_from_miners(miner_id,asset_sym,asset_amount)
+			static int foreclose_balance_from_miners(lua_State *L)
 			{
 				if (lua_gettop(L) < 3)
 				{
-					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "foreclose_balance_from_candidates need 4 arguments");
+					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "foreclose_balance_from_miners need 4 arguments");
 					return 0;
 				}
 				const char *contract_id = get_storage_contract_id_in_api(L);
 				if (!contract_id)
 				{
-					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "foreclose_balance_from_candidates must be called in contract api");
+					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "foreclose_balance_from_miners must be called in contract api");
 					return 0;
 				}
 
 				auto mid = luaL_checkstring(L, 1);
 				const char *asset_sym = luaL_checkstring(L, 2);
 				const char *asset_amount = luaL_checkstring(L, 3);
-				int transfer_result = uvm::lua::api::global_uvm_chain_api->foreclose_balance_from_candidates(L, contract_id, mid, asset_sym, asset_amount);
+				int transfer_result = uvm::lua::api::global_uvm_chain_api->foreclose_balance_from_miners(L, contract_id, mid, asset_sym, asset_amount);
 				lua_pushboolean(L, transfer_result);
 				return 1;
 			}
@@ -1828,9 +1828,9 @@ end
 
 					add_global_c_function(L, "delegate_call", &delegate_call);
 					add_global_c_function(L, "send_message", &send_message);
-					add_global_c_function(L, "lock_contract_balance_to_candidate", &lock_contract_balance_to_candidate);
+					add_global_c_function(L, "lock_contract_balance_to_miner", &lock_contract_balance_to_miner);
 					add_global_c_function(L, "obtain_pay_back_balance", &obtain_pay_back_balance);
-					add_global_c_function(L, "foreclose_balance_from_candidates", &foreclose_balance_from_candidates);
+					add_global_c_function(L, "foreclose_balance_from_miners", &foreclose_balance_from_miners);
 					add_global_c_function(L, "get_contract_lock_balance_info", &get_contract_lock_balance_info);
 					add_global_c_function(L, "get_contract_lock_balance_info_by_asset", &get_contract_lock_balance_info_by_asset);
 					add_global_c_function(L, "get_pay_back_balance", &get_pay_back_balance);

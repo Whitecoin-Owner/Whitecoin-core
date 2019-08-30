@@ -142,8 +142,8 @@ void_result set_balance_evaluator::do_apply(const set_balance_operation& op)
 			// modify the balance
 			for (const auto& lockbalance_obj : lockbalance_objs)
 			{
-				auto candidate = lockbalance_obj.lockto_candidate_account;
-				d.adjust_lock_balance(candidate, deposited_account_id, -asset(lockbalance_obj.lock_asset_amount, lockbalance_obj.lock_asset_id));
+				auto miner = lockbalance_obj.lockto_miner_account;
+				d.adjust_lock_balance(miner, deposited_account_id, -asset(lockbalance_obj.lock_asset_amount, lockbalance_obj.lock_asset_id));
 				d.modify(d.get_lockbalance_records(), [&](lockbalance_record_object& obj) {
 					obj.record_list[op.addr_to_deposit][lockbalance_obj.lock_asset_id] -= lockbalance_obj.lock_asset_amount;
 				});
@@ -172,7 +172,7 @@ void_result correct_chain_data_evaluator::do_evaluate(const correct_chain_data_o
 		auto iter = idx.find(op.payer);
 		FC_ASSERT(iter != idx.end(), "${addr} should be registerd on the chain.", ("addr", op.payer));
 		const auto& wallfacers_index = d.get_index_type<wallfacer_member_index>().indices().get<by_account>();
-		const auto& candidate_idx = d.get_index_type<candidate_index>().indices().get<by_account>();
+		const auto& miner_idx = d.get_index_type<miner_index>().indices().get<by_account>();
 		auto wallfacer_itr = wallfacers_index.find(iter->get_id());
 		FC_ASSERT(wallfacer_itr != wallfacers_index.end() && wallfacer_itr->wallfacer_type == PERMANENT, "need to be permanent wallfacer.");
 
@@ -180,7 +180,7 @@ void_result correct_chain_data_evaluator::do_evaluate(const correct_chain_data_o
 		{
 			iter = idx.find(addr);
 			FC_ASSERT(iter != idx.end(), "${addr} should be registerd on the chain.", ("addr", addr));
-			FC_ASSERT(candidate_idx.find(iter->get_id()) != candidate_idx.end(),"${addr} should be a candidate",("addr",addr));
+			FC_ASSERT(miner_idx.find(iter->get_id()) != miner_idx.end(),"${addr} should be a miner",("addr",addr));
 		}
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((op))
@@ -189,15 +189,15 @@ void_result correct_chain_data_evaluator::do_apply(const correct_chain_data_oper
 {
 	try {
 		database& d = db();
-		std::map<candidate_id_type, map<string,asset>> candidates;
-		const auto& candidate_idx = d.get_index_type<candidate_index>();
-		const auto& candidate_itrs = candidate_idx.indices().get<by_account>();
+		std::map<miner_id_type, map<string,asset>> miners;
+		const auto& miner_idx = d.get_index_type<miner_index>();
+		const auto& miner_itrs = miner_idx.indices().get<by_account>();
 		if (op.correctors.size() == 0)
 		{
-			//const auto& candidate_idx = d.get_index_type<candidate_index>();
-			candidate_idx.inspect_all_objects([&](const object& obj) {
-				const candidate_object& c = static_cast<const candidate_object&>(obj);
-				candidates[c.id] = c.lockbalance_total;
+			//const auto& miner_idx = d.get_index_type<miner_index>();
+			miner_idx.inspect_all_objects([&](const object& obj) {
+				const miner_object& c = static_cast<const miner_object&>(obj);
+				miners[c.id] = c.lockbalance_total;
 			});
 
 		}
@@ -207,31 +207,31 @@ void_result correct_chain_data_evaluator::do_apply(const correct_chain_data_oper
 			for (const auto& addr : op.correctors)
 			{
 				auto iter = idx.find(addr);
-				const auto candidate_itr = candidate_itrs.find(iter->get_id());
-				candidates[candidate_itr->id] = candidate_itr->lockbalance_total;
+				const auto miner_itr = miner_itrs.find(iter->get_id());
+				miners[miner_itr->id] = miner_itr->lockbalance_total;
 			}
 		}
-		for (const auto& ctzen : candidates)
+		for (const auto& ctzen : miners)
 		{
-			std::map<string, asset> candidate_locks;
-			const auto& vec_locks = d.get_candidate_lockbalance_info(ctzen.first);
+			std::map<string, asset> miner_locks;
+			const auto& vec_locks = d.get_miner_lockbalance_info(ctzen.first);
 			for (const auto& lock : vec_locks)
 			{
 				for (const auto& t : lock.second)
 				{
 					const auto& asset_obj = d.get(t.asset_id);
-					if (candidate_locks.count(asset_obj.symbol))
+					if (miner_locks.count(asset_obj.symbol))
 					{
-						candidate_locks[asset_obj.symbol] += t;
+						miner_locks[asset_obj.symbol] += t;
 					}
 					else
-						candidate_locks[asset_obj.symbol] = t;
+						miner_locks[asset_obj.symbol] = t;
 				}
 			}
-			if (candidate_locks != ctzen.second)
+			if (miner_locks != ctzen.second)
 			{
-				d.modify(d.get(ctzen.first), [&](candidate_object& obj) {
-					obj.lockbalance_total = candidate_locks;
+				d.modify(d.get(ctzen.first), [&](miner_object& obj) {
+					obj.lockbalance_total = miner_locks;
 				});
 			}
 		}

@@ -366,7 +366,7 @@ optional<multisig_account_pair_object> database::get_multisgi_account(const stri
 	return result;
 }
 
-void database::deposit_candidate_pay(const candidate_object& wit, share_type amount)
+void database::deposit_miner_pay(const miner_object& wit, share_type amount)
 {
    if( amount == 0 )
       return;
@@ -374,13 +374,13 @@ void database::deposit_candidate_pay(const candidate_object& wit, share_type amo
    optional< vesting_balance_id_type > new_vbid = deposit_lazy_vesting(
       wit.pay_vb,
       amount,
-      get_global_properties().parameters.candidate_pay_vesting_seconds,
-      wit.candidate_account,
+      get_global_properties().parameters.miner_pay_vesting_seconds,
+      wit.miner_account,
       true );
 
    if( new_vbid.valid() )
    {
-      modify( wit, [&](candidate_object& _wit )
+      modify( wit, [&](miner_object& _wit )
       {
          _wit.pay_vb = *new_vbid;
       } );

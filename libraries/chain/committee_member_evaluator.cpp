@@ -46,9 +46,9 @@ namespace graphene {
         {
             try {
                 //FC_ASSERT(db().get(op.wallfacer_member_account).is_lifetime_member());
-                 // account cannot be a candidate
-                auto& iter = db().get_index_type<candidate_index>().indices().get<by_account>();
-                FC_ASSERT(iter.find(op.wallfacer_member_account) == iter.end(), "account cannot be a candidate.");       
+                 // account cannot be a miner
+                auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
+                FC_ASSERT(iter.find(op.wallfacer_member_account) == iter.end(), "account cannot be a miner.");       
 				FC_ASSERT(db().get(op.wallfacer_member_account).addr == op.fee_pay_address);
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
@@ -86,7 +86,7 @@ namespace graphene {
 					for (const auto& op_r : referendum.proposed_transaction.operations)
 					{
 
-						FC_ASSERT(op_r.which() != operation::tag<candidate_referendum_wallfacer_operation>::value, "there is other referendum for wallfacer election.");
+						FC_ASSERT(op_r.which() != operation::tag<miner_referendum_wallfacer_operation>::value, "there is other referendum for wallfacer election.");
 					}
 				}
 				const auto&  wallfacer_idx = db().get_index_type<wallfacer_member_index>().indices().get<by_account>();
@@ -165,13 +165,13 @@ namespace graphene {
             try {
                 //执行退币流程
                 database& _db = db();
-                //执行candidate质押退币流程
+                //执行miner质押退币流程
                 const auto& lock_balances = _db.get_index_type<lockbalance_index>().indices();
                 const auto& wallfacer_lock_balances = _db.get_index_type<wallfacer_lock_balance_index>().indices();
                 const auto& all_wallfacer = _db.get_index_type<wallfacer_member_index>().indices();
-                const auto& all_candidate = _db.get_index_type<candidate_index>().indices();
+                const auto& all_miner = _db.get_index_type<miner_index>().indices();
                 share_type loss_money = o.loss_asset.amount;
-                share_type candidate_need_pay_money = loss_money * o.commitee_member_handle_percent / 100;
+                share_type miner_need_pay_money = loss_money * o.commitee_member_handle_percent / 100;
                 share_type wallfacer_need_pay_money = 0;
                 share_type Total_money = 0;
                 share_type Total_pay = 0;
@@ -184,14 +184,14 @@ namespace graphene {
                             //按比例扣除
                         }
                     }
-                    double percent = (double)candidate_need_pay_money.value / (double)Total_money.value;
+                    double percent = (double)miner_need_pay_money.value / (double)Total_money.value;
                     for (auto& one_balance : lock_balances) {
                         if (one_balance.lock_asset_id == o.loss_asset.asset_id) {
                             share_type pay_amount = (uint64_t)(one_balance.lock_asset_amount.value*percent);
                             _db.modify(one_balance, [&](lockbalance_object& obj) {
                                 obj.lock_asset_amount -= pay_amount;
                             });
-                            _db.modify(_db.get(one_balance.lockto_candidate_account), [&](candidate_object& obj) {
+                            _db.modify(_db.get(one_balance.lockto_miner_account), [&](miner_object& obj) {
                                 if (obj.lockbalance_total.count(asset_symbol)) {
                                     obj.lockbalance_total[asset_symbol] -= pay_amount;
                                 }
@@ -278,12 +278,12 @@ namespace graphene {
             } FC_CAPTURE_AND_RETHROW((o))
         }
 
-		void_result candidate_referendum_wallfacer_evaluator::do_evaluate(const candidate_referendum_wallfacer_operation& o)
+		void_result miner_referendum_wallfacer_evaluator::do_evaluate(const miner_referendum_wallfacer_operation& o)
 		{
 			try {
 				const auto& _db = db();
 				const auto& all_wallfacer_ic = _db.get_index_type<wallfacer_member_index>().indices().get<by_account>();
-				const auto& all_candidate_ic = _db.get_index_type<candidate_index>().indices().get<by_account>();
+				const auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
 				const auto& referendum_idx = db().get_index_type<referendum_index>().indices().get<by_pledge>();
 				auto itr = referendum_idx.rbegin();
 				if (itr != referendum_idx.rend())
@@ -293,29 +293,29 @@ namespace graphene {
 				for (const auto& iter : o.replace_queue)
 				{
 					auto itr_first_wallfacer = all_wallfacer_ic.find(iter.first);
-					auto itr_first_candidate = all_candidate_ic.find(iter.first);
+					auto itr_first_miner = all_miner_ic.find(iter.first);
 					auto itr_second_wallfacer = all_wallfacer_ic.find(iter.second);
 					FC_ASSERT(itr_second_wallfacer != all_wallfacer_ic.end() && itr_second_wallfacer->formal == true && itr_second_wallfacer->wallfacer_type != PERMANENT);
-					FC_ASSERT(itr_first_candidate == all_candidate_ic.end() && (itr_first_wallfacer != all_wallfacer_ic.end() && itr_first_wallfacer->formal != true));
+					FC_ASSERT(itr_first_miner == all_miner_ic.end() && (itr_first_wallfacer != all_wallfacer_ic.end() && itr_first_wallfacer->formal != true));
 					target.insert(iter.second);
 				}
 				FC_ASSERT(o.replace_queue.size() == target.size(),"replaced wallfacer should be unique.");
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
-		void_result candidate_referendum_wallfacer_evaluator::do_apply(const candidate_referendum_wallfacer_operation& o)
+		void_result miner_referendum_wallfacer_evaluator::do_apply(const miner_referendum_wallfacer_operation& o)
 		{
 			try {
 				auto& _db = db();
 				auto& all_wallfacer_ic = _db.get_index_type<wallfacer_member_index>().indices().get<by_account>();
-				auto& all_candidate_ic = _db.get_index_type<candidate_index>().indices().get<by_account>();
+				auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
 				for (const auto& iter : o.replace_queue)
 				{
 					auto itr_first_wallfacer = all_wallfacer_ic.find(iter.first);
-					auto itr_first_candidate = all_candidate_ic.find(iter.first);
+					auto itr_first_miner = all_miner_ic.find(iter.first);
 					auto itr_second_wallfacer = all_wallfacer_ic.find(iter.second);
 					//FC_ASSERT(itr_second_wallfacer != all_wallfacer_ic.end() && itr_second_wallfacer->formal == true);
-					//FC_ASSERT(itr_first_candidate == all_candidate_ic.end() && (itr_first_wallfacer == all_wallfacer_ic.end() || (itr_first_wallfacer != all_wallfacer_ic.end() && itr_first_wallfacer->formal != true)));
+					//FC_ASSERT(itr_first_miner == all_miner_ic.end() && (itr_first_wallfacer == all_wallfacer_ic.end() || (itr_first_wallfacer != all_wallfacer_ic.end() && itr_first_wallfacer->formal != true)));
 					_db.modify(*itr_second_wallfacer, [](wallfacer_member_object& obj) {
 						obj.formal = false;
 					});
@@ -347,7 +347,7 @@ namespace graphene {
 
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
-		bool candidate_referendum_wallfacer_evaluator::if_evluate()
+		bool miner_referendum_wallfacer_evaluator::if_evluate()
 		{
 			return true;
 		}

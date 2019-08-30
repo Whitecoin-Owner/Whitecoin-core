@@ -32,7 +32,7 @@ namespace graphene {
 			fc::future<void> _acquire_crosschain_task;
 			std::set<std::string> _asset_symbols;
 			boost::program_options::variables_map _options;
-			std::set<chain::candidate_id_type> _candidates;
+			std::set<chain::miner_id_type> _miners;
 			std::set<chain::wallfacer_member_id_type> _wallfacer;
 			fc::thread                            _thread;
 			bool started = false;
