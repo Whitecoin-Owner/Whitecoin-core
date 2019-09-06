@@ -23,11 +23,11 @@ namespace graphene {
 					const auto& miner_acc = d.get<account_object>(miner_obj.miner_account);
 					temp_payback_balance[miner_acc.name] = payback_address_iter.one_owner_balance;
 				}
-				
-				if (no_effect_balance)
-				{
-					return void_result();
-				}
+				FC_ASSERT(no_effect_balance == false,"pay back balance not enough!");
+				//if (no_effect_balance)
+				//{
+			//		return void_result();
+			//	}
 				
 				share_type min_payback_balance = d.get_global_properties().parameters.min_pay_back_balance;
 				auto other_payback_balance = d.get_global_properties().parameters.min_pay_back_balance_other_asset;
