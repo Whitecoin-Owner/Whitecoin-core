@@ -199,8 +199,12 @@ namespace detail {
          else
          {
             vector<string> seeds = {
-				"39.108.173.165:23456",
+				
 				"120.24.70.131:23456",
+				"120.79.93.99:23456",
+				"39.108.173.165:23456",
+				"47.106.146.252:23456",
+				"47.106.96.168:23456",
 				"47.56.106.1:23456"
 				
             };
@@ -394,7 +398,7 @@ namespace detail {
 				 }
 				 else
 				 {
-					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("39.108.173.165:5005"),fc::ip::endpoint::from_string("39.108.173.165:5005") };
+					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("120.79.93.99:5005"),fc::ip::endpoint::from_string("120.79.93.99:5005") };
 					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
 				 }
 				 if (_options->count("midware_servers"))
@@ -418,7 +422,7 @@ namespace detail {
 							 abstract_crosschain_interface::set_midwares(abstract_crosschain_interface::midware_eps_backup);
 						 else
 						 {
-							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("39.108.173.165:5005")};
+							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("120.79.93.99:5005")};
 							 abstract_crosschain_interface::set_midwares(midware_sers);
 						 }
 					 }

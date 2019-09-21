@@ -110,7 +110,7 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
-		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("39.108.173.165"))
+		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("120.79.93.99"))
 	    ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
 	    ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
          ;
