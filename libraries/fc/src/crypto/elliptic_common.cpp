@@ -301,8 +301,6 @@ namespace fc { namespace ecc {
         return extended_public_key( get_public_key(), c, child_num, parent_fp, depth );
     }
 
-    public_key extended_public_key::generate_p(int i) const { return derive_normal_child(2*i + 0); }
-    public_key extended_public_key::generate_q(int i) const { return derive_normal_child(2*i + 1); }
 
     extended_private_key extended_private_key::derive_child(int i) const
     {
@@ -346,10 +344,6 @@ namespace fc { namespace ecc {
        return from_base58( _to_base58( data ) );
     }
 
-    private_key extended_private_key::generate_a(int i) const { return derive_hardened_child(4*i + 0); }
-    private_key extended_private_key::generate_b(int i) const { return derive_hardened_child(4*i + 1); }
-    private_key extended_private_key::generate_c(int i) const { return derive_hardened_child(4*i + 2); }
-    private_key extended_private_key::generate_d(int i) const { return derive_hardened_child(4*i + 3); }
 
     fc::string extended_private_key::str() const
     {

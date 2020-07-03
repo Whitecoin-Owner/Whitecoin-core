@@ -289,14 +289,15 @@ namespace graphene { namespace app {
    {
       public:
          crypto_api();
-         
-         fc::ecc::blind_signature blind_sign( const extended_private_key_type& key, const fc::ecc::blinded_hash& hash, int i );
-         
-         signature_type unblind_signature( const extended_private_key_type& key,
-                                              const extended_public_key_type& bob,
-                                              const fc::ecc::blind_signature& sig,
-                                              const fc::sha256& hash,
-                                              int i );
+         /**
+          * @brief Generates a pedersen commitment: *commit = blind * G + value * G2.
+          * The commitment is 33 bytes, the blinding factor is 32 bytes.
+          * For more information about pederson commitment check url https://en.wikipedia.org/wiki/Commitment_scheme
+          * @param blind Sha-256 blind factor type
+          * @param value Positive 64-bit integer value
+          * @return A 33-byte pedersen commitment: *commit = blind * G + value * G2
+          */
+
                                                                   
          fc::ecc::commitment_type blind( const fc::ecc::blind_factor_type& blind, uint64_t value );
          
@@ -490,8 +491,6 @@ FC_API(graphene::app::network_node_api,
        (set_advanced_node_parameters)
      )
 FC_API(graphene::app::crypto_api,
-       (blind_sign)
-       (unblind_signature)
        (blind)
        (blind_sum)
        (verify_sum)
