@@ -174,6 +174,7 @@
 #define XWC_REFERENDUM_VOTING_PERIOD                          7*24*3600
 #define XWC_CHECK_POINT                                       "001b77403468c26f49ebae2febd0dfb6ff0bd2ba"
 #define XWC_CHECK_POINT_BLOCK                                 1800000
+#define GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM						10
 /**
  *  Reserved Account IDs with special meaning
  */
