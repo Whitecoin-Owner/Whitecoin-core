@@ -2080,6 +2080,7 @@ class wallet_api
 	  full_transaction wallfacer_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction wallfacer_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_appointed_lockbalance_wallfacer(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
@@ -3390,4 +3391,5 @@ FC_API( graphene::wallet::wallet_api,
 		(confirm_undertaker)
 		(build_transaction)
 		(load_new_wallet)
+		(wallfacer_appointed_withdraw_limit)
       )

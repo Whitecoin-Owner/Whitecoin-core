@@ -38,7 +38,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.account_id );
    }
-   
+   void operator()(const withdraw_limit_modify_operation&) {}
    void operator()( const account_create_operation& op )
    {
       _impacted.insert( op.registrar );

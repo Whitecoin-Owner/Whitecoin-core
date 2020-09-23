@@ -3508,6 +3508,32 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(gas_price)(symbol)(expiration_time)(broadcast))
    }
+   full_transaction wallfacer_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast /* = true */)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   withdraw_limit_modify_operation op;
+		   auto wallfacer_member_account = get_wallfacer_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.asset_symbol = symbol;
+		   op.withdraw_limit = limit;
+
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   //prop_op.type = vote_id_type::witness;
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(limit)(symbol)(expiration_time)(broadcast))
+   }
    full_transaction wallfacer_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -9929,6 +9955,10 @@ full_transaction wallet_api::wallfacer_cancel_publisher(const string& account, c
 full_transaction wallet_api::wallfacer_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->wallfacer_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+}
+full_transaction wallet_api::wallfacer_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->wallfacer_appointed_withdraw_limit(account,limit, symbol,expiration_time,broadcast);
 }
 full_transaction wallet_api::wallfacer_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast)
 {
