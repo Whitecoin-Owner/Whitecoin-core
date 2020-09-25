@@ -3517,22 +3517,15 @@ public:
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   op.asset_symbol = symbol;
 		   op.withdraw_limit = limit;
-<<<<<<< HEAD
+
 		   auto publisher_appointed_op = operation(op);
 		   current_params.current_fees->set_fee(publisher_appointed_op);
-=======
-		   auto publisher_appointed_op = operation(op);
-		   current_params.current_fees->set_fee(publisher_appointed_op);
->>>>>>> 96994a3876feae33476c5d13162c22dcdb413dfa
 		   signed_transaction tx;
 		   proposal_create_operation prop_op;
 		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-<<<<<<< HEAD
-=======
->>>>>>> 96994a3876feae33476c5d13162c22dcdb413dfa
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
