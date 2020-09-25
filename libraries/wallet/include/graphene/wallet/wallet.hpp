@@ -2075,10 +2075,12 @@ class wallet_api
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
 	  void remove_guarantee_id();
+	  void load_new_wallet(const fc::path & wallet, const string& password);
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction wallfacer_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction wallfacer_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_appointed_lockbalance_wallfacer(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction wallfacer_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
@@ -3372,9 +3374,6 @@ FC_API( graphene::wallet::wallet_api,
 		(wallet_create_account_with_brain_key)
 		(get_pending_transactions)
 		(update_asset_private_with_keys)
-		(add_whiteOperation)
-		(remove_whiteOperation)
-		(set_balance_for_addr)
 		(set_gas_limit_in_block)
 		(bind_tunnel_account_with_script)
 		(unbind_tunnel_account_with_script)
@@ -3390,6 +3389,7 @@ FC_API( graphene::wallet::wallet_api,
 		(confirm_name_transfer)
 		(undertaker_customize)
 		(confirm_undertaker)
-		(get_pledge)
 		(build_transaction)
+		(load_new_wallet)
+		(wallfacer_appointed_withdraw_limit)
       )

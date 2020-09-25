@@ -673,7 +673,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.24";
+	  result["version"] = "1.2.26";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1197,7 +1197,38 @@ public:
    }
 
    vector< signed_transaction > import_balance( string name_or_id, const vector<string>& wif_keys, bool broadcast );
+   void load_new_wallet(const fc::path& wallet_file, const string& password)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   FC_ASSERT(wallet_file.string() != "");
+		   FC_ASSERT(fc::exists(wallet_file));
+		   auto t_wallet_data = fc::json::from_file(wallet_file).as< wallet_data >();
+		   FC_ASSERT(t_wallet_data.chain_id == _chain_id,"wallet chain id does not match.");
 
+		   size_t n_wallet = _wallet.my_accounts.size();
+		   size_t n_new = t_wallet_data.my_accounts.size();
+		   FC_ASSERT(password.size() > 0);
+		   auto pw = fc::sha512::hash(password.c_str(), password.size());
+		   vector<char> decrypted = fc::aes_decrypt(pw, t_wallet_data.cipher_keys);
+		   auto pk = fc::raw::unpack<plain_keys>(decrypted);
+		   std::for_each(t_wallet_data.my_accounts.begin(), t_wallet_data.my_accounts.end(), [&pk,this](const account_object& obj) {
+			   const auto& acc_iter = _wallet.my_accounts.get<by_name>();
+			   auto iter = acc_iter.find(obj.name);
+			   string name = obj.name;
+			   if (iter != acc_iter.end() && iter->addr != obj.addr)
+			   {
+				   name = name + "_1";
+			   }
+			   import_key(name, pk.keys[obj.addr]);
+		   });
+		   for (const auto& cross_key : pk.crosschain_keys)
+		   {
+			   _crosschain_keys.insert(cross_key);
+		   }
+		   save_wallet_file();
+	   }FC_CAPTURE_AND_RETHROW((wallet_file))
+   }
    bool load_wallet_file(string wallet_filename = "")
    {
 	   // TODO:  Merge imported wallet with existing wallet,
@@ -3477,6 +3508,37 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(gas_price)(symbol)(expiration_time)(broadcast))
    }
+   full_transaction wallfacer_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast /* = true */)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   withdraw_limit_modify_operation op;
+		   auto wallfacer_member_account = get_wallfacer_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.asset_symbol = symbol;
+		   op.withdraw_limit = limit;
+<<<<<<< HEAD
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+=======
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+>>>>>>> 96994a3876feae33476c5d13162c22dcdb413dfa
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+<<<<<<< HEAD
+=======
+>>>>>>> 96994a3876feae33476c5d13162c22dcdb413dfa
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(limit)(symbol)(expiration_time)(broadcast))
+   }
    full_transaction wallfacer_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -5203,7 +5265,9 @@ public:
 
       uint32_t expiration_time_offset = 0;
 	  auto dyn_props = get_dynamic_global_properties();
-	  tx.set_reference_block(dyn_props.head_block_id);
+	  auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+	  //tx.set_reference_block(dyn_props.head_block_id);
 	  flat_set<address> approving_key_set;
 	  for (const authority& a : other_auths)
 	  {
@@ -6508,7 +6572,9 @@ public:
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
 		   uint32_t expiration_time_offset = 0;
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
@@ -6541,7 +6607,9 @@ public:
 			set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
 			uint32_t expiration_time_offset = 0;
 			auto dyn_props = get_dynamic_global_properties();
-			tx.set_reference_block(dyn_props.head_block_id);
+			auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+			//tx.set_reference_block(dyn_props.head_block_id);
 			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 			tx.validate();
 			auto json_str = fc::json::to_string(tx);
@@ -6575,7 +6643,9 @@ public:
 
 		   uint32_t expiration_time_offset = 0;
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600*24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
@@ -6664,7 +6734,9 @@ public:
 
          auto dyn_props = get_dynamic_global_properties();
          transaction tmp;
-         tmp.set_reference_block(dyn_props.head_block_id);
+		 auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM>0? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM:0);
+		 tmp.set_reference_block(ref_block_header->previous);
+         //tmp.set_reference_block(dyn_props.head_block_id);
         
          auto res = fc::to_string(tmp.ref_block_num);
          res += "," + fc::to_string(tmp.ref_block_prefix);
@@ -9889,6 +9961,10 @@ full_transaction wallet_api::wallfacer_appointed_crosschain_fee(const string& ac
 {
 	return my->wallfacer_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
 }
+full_transaction wallet_api::wallfacer_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->wallfacer_appointed_withdraw_limit(account,limit, symbol,expiration_time,broadcast);
+}
 full_transaction wallet_api::wallfacer_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->wallfacer_change_eth_gas_price(account, gas_price, symbol, expiration_time, broadcast);
@@ -10632,6 +10708,10 @@ graphene::wallet::brain_key_usage_info wallet_api::dump_brain_key_usage_info(con
 void wallet_api::witness_node_stop()
 {
     my->witness_node_stop();
+}
+void wallet_api::load_new_wallet(const fc::path & wallet, const string& password)
+{
+	my->load_new_wallet(wallet,password);
 }
 } } // graphene::wallet
 

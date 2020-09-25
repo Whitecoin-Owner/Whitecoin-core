@@ -172,8 +172,9 @@
 #define XWC_DEVELOP_TEAM_PAY_TATIO                            30
 #define XWC_REFERENDUM_PACKING_PERIOD                         24*3600
 #define XWC_REFERENDUM_VOTING_PERIOD                          7*24*3600
-#define XWC_CHECK_POINT                                       "001b77403468c26f49ebae2febd0dfb6ff0bd2ba"
-#define XWC_CHECK_POINT_BLOCK                                 1800000
+#define XWC_CHECK_POINT                                       "00454660f85362eb7e4342b34220ca299e74dd41"
+#define XWC_CHECK_POINT_BLOCK                                 4540000
+#define GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM						10
 /**
  *  Reserved Account IDs with special meaning
  */

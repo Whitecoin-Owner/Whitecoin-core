@@ -43,7 +43,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.to );
    }
-
+   void operator()(const withdraw_limit_modify_operation&) {}
    void operator()( const asset_claim_fees_operation& op ){}
    void operator()( const limit_order_create_operation& op ) {}
    void operator()( const limit_order_cancel_operation& op )
