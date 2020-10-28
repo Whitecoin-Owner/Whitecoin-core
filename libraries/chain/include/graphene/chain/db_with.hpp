@@ -103,8 +103,13 @@ struct pending_transactions_restorer
          } catch ( const fc::exception&  ) {
          }
       }
-	  _db.broad_trxs(_db._popped_tx);
-      _db._popped_tx.clear();
+       try {
+		  _db.broad_trxs(_db._popped_tx);
+		  _db._popped_tx.clear();
+	  }
+      catch (const fc::exception& e) {
+		  std::cout << "get exception  when broadcast :"<< e.what() << std::endl;
+	  }
       for( const processed_transaction& tx : _pending_transactions )
       {
          try
