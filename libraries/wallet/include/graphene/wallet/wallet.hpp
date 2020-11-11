@@ -3392,4 +3392,6 @@ FC_API( graphene::wallet::wallet_api,
 		(build_transaction)
 		(load_new_wallet)
 		(wallfacer_appointed_withdraw_limit)
+		(get_ntp_info)
+		(ntp_update_time)
       )
