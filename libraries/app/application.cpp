@@ -564,11 +564,27 @@ namespace detail {
             }
          }
 
-         if( !replay )
+         if( replay )
+         {
+            // Replay all local block, this operation need more time...
+            ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
+			fc::remove_all(_data_dir / "db_version");
+			_chain_db->reindex(_data_dir / "blockchain", initial_state());
+
+            // Create the db_version file
+			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
+			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
+			std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
+			db_version.write(version_string.c_str(), version_string.size());
+			db_version.close();
+         }
+         else
          {
             try
             {
+                // Backup mode
 				if (_options->count("need-secure"))
+                {
 					if (fc::exists(_data_dir / "blockchain_previous"))
 					{
 						fc::remove_all(_data_dir / "blockchain");
@@ -578,6 +594,8 @@ namespace detail {
 					{
 						fc::copy_file(_data_dir / "blockchain", _data_dir / "blockchain_previous");
 					}
+                }
+                
                _chain_db->open( _data_dir / "blockchain", initial_state );
             }
             catch( const fc::exception& e )
@@ -588,17 +606,8 @@ namespace detail {
                replay_reason = "exception in open()";
             }
          }
-         if( replay )
-         {
-            ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
-			fc::remove_all(_data_dir / "db_version");
-			_chain_db->reindex(_data_dir / "blockchain", initial_state());
-			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
-			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
-			std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
-			db_version.write(version_string.c_str(), version_string.size());
-			db_version.close();
-         }
+
+         
 
          if( _options->count("force-validate") )
          {
@@ -1109,12 +1118,12 @@ namespace detail {
       const bpo::variables_map* _options = nullptr;
       api_access _apiaccess;
 
-      std::shared_ptr<graphene::chain::database>            _chain_db;
-      std::shared_ptr<graphene::net::node>                  _p2p_network;
-      std::shared_ptr<fc::http::websocket_server>      _websocket_server;
-      std::shared_ptr<fc::http::websocket_tls_server>  _websocket_tls_server;
+      std::shared_ptr<graphene::chain::database>           _chain_db;
+      std::shared_ptr<graphene::net::node>                 _p2p_network;
+      std::shared_ptr<fc::http::websocket_server>          _websocket_server;
+      std::shared_ptr<fc::http::websocket_tls_server>      _websocket_tls_server;
 
-      std::map<string, std::shared_ptr<abstract_plugin>> _plugins;
+      std::map<string, std::shared_ptr<abstract_plugin>>   _plugins;
 
       bool _is_finished_syncing = false;
    };

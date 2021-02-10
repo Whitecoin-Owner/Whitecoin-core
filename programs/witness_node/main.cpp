@@ -94,6 +94,8 @@ LONG WINAPI UnhandledExceptionFilterEx(struct _EXCEPTION_POINTERS *pException)
 
 using namespace graphene;
 namespace bpo = boost::program_options;
+
+#define WITENESS_NODE_VERSION "1.2.9"
          
 void write_default_logging_config_to_stream(std::ostream& out);
 fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename, const std::set<std::string> discard_logs=std::set<std::string>());
@@ -110,6 +112,7 @@ int main(int argc, char** argv) {
       bpo::options_description cfg_options("Graphene Witness Node");
       app_options.add_options()
             ("help,h", "Print this help message and exit.")
+            ("version,v", "Show version   info and exit.")
             ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("witness_node_data_dir"), "Directory containing databases, configuration file, etc.")
             ;
 
@@ -137,9 +140,16 @@ int main(int argc, char** argv) {
 
       if( options.count("help") )
       {
-         std::cout << app_options << "\n";
+         std::cout << app_options << std::endl;
          return 0;
       }
+
+      if( options.count("version") )
+      {
+         std::cout << WITENESS_NODE_VERSION << std::endl;
+         return 0;
+      }
+      
 	  bool b_testnet = false;
 	  if (options.count("testnet"))
 	  {

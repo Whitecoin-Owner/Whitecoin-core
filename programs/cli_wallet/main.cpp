@@ -63,6 +63,8 @@ using namespace graphene::wallet;
 using namespace std;
 namespace bpo = boost::program_options;
 
+#define CLI_WALLET_VERSION "1.2.9"
+
 int main( int argc, char** argv )
 {
    try {
@@ -70,6 +72,7 @@ int main( int argc, char** argv )
       boost::program_options::options_description opts;
          opts.add_options()
          ("help,h", "Print this help message and exit.")
+         ("version,v", "Show version   info and exit.")
          ("server-rpc-endpoint,s", bpo::value<string>()->implicit_value("ws://127.0.0.1:8090"), "Server websocket RPC endpoint")
          ("server-rpc-user,u", bpo::value<string>(), "Server Username")
          ("server-rpc-password,p", bpo::value<string>(), "Server Password")
@@ -88,8 +91,14 @@ int main( int argc, char** argv )
 
       if( options.count("help") )
       {
-         std::cout << opts << "\n";
+         std::cout << opts << std::endl;
          return 0;
+      }
+
+      if( options.count("version") )
+      {
+        std::cout << CLI_WALLET_VERSION << std::endl;
+        return 0;
       }
 
 

@@ -40,42 +40,52 @@ FC_REFLECT( graphene::chain::index_entry, (block_pos)(block_size)(block_id) );
 namespace graphene { namespace chain {
 
 void block_database::open( const fc::path& dbdir )
-{ try {
-   fc::create_directories(dbdir);
-   /*  _block_num_to_pos.clear();
-	 _blocks.clear();*/
-   _block_num_to_pos.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-   _blocks.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+{ 
+    try 
+    {
+        fc::create_directories(dbdir);
+        /*  _block_num_to_pos.clear();
+	    _blocks.clear();*/
+        _block_num_to_pos.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+        _blocks.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
-   if( !fc::exists( dbdir/"index" ) )
-   {
-     _block_num_to_pos.open( (dbdir/"index").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc);
-     _blocks.open( (dbdir/"blocks").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc);
-   }
-   else
-   {
-     _block_num_to_pos.open( (dbdir/"index").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out );
-     _blocks.open( (dbdir/"blocks").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out );
-   }
-} FC_CAPTURE_AND_RETHROW( (dbdir) ) }
+        if( !fc::exists( dbdir/"index" ) )
+        {
+            _block_num_to_pos.open( (dbdir/"index").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc);
+            
+            _blocks.open( (dbdir/"blocks").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc);
+        }
+        else
+        {
+            _block_num_to_pos.open( (dbdir/"index").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out );            
+            _blocks.open( (dbdir/"blocks").generic_string().c_str(), std::fstream::binary | std::fstream::in | std::fstream::out );                        
+        }
+    }
+    FC_CAPTURE_AND_RETHROW( (dbdir) )
+}
 
 bool block_database::is_open()const
 {
-  return _blocks.is_open();
+    return _blocks.is_open();
 }
 
 void block_database::close()
 {
 	if (_blocks.is_open())
+    {
 		_blocks.close();
+    }
+    
 	if (_block_num_to_pos.is_open())
-		_block_num_to_pos.close();
+    {
+	    _block_num_to_pos.close();
+    }
 }
 
 void block_database::flush()
 {
-  _blocks.flush();
-  _block_num_to_pos.flush();
+    _blocks.flush();
+    _block_num_to_pos.flush();
 }
 
 void block_database::store( const block_id_type& _id, const signed_block& b )
@@ -92,7 +102,7 @@ void block_database::store( const block_id_type& _id, const signed_block& b )
    _blocks.seekp( 0, _blocks.end );
    auto vec = fc::raw::pack( b );
    e.block_pos  = _blocks.tellp();
-   e.block_size = vec.size();
+   e.block_size= vec.size();
    e.block_id   = id;
    _blocks.write( vec.data(), vec.size() );
    _block_num_to_pos.write( (char*)&e, sizeof(e) );

@@ -43,6 +43,10 @@ namespace graphene { namespace chain {
          optional<signed_block> fetch_by_number( uint32_t block_num )const;
          optional<signed_block> last()const;
          optional<block_id_type> last_id()const;
+
+         uint64_t  get_replay_pos() const;
+         void set_replay_pos(const uint64_t pos);
+         
       private:
          mutable std::fstream _blocks;
          mutable std::fstream _block_num_to_pos;
