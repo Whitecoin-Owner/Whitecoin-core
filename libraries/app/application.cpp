@@ -81,11 +81,11 @@ namespace bpo = boost::program_options;
 namespace detail {
 
    genesis_state_type create_example_genesis() {
-	   
+       
       //auto test_nathan_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("nathan")));
-	   auto test_nathan_key = fc::ecc::private_key::generate();
+       auto test_nathan_key = fc::ecc::private_key::generate();
       dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(test_nathan_key)));
-	  std::cout << "xwc" << utilities::key_to_wif(test_nathan_key) << std::endl;
+      std::cout << "xwc" << utilities::key_to_wif(test_nathan_key) << std::endl;
       genesis_state_type initial_state;
       initial_state.initial_parameters.current_fees = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
       initial_state.initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
@@ -95,49 +95,49 @@ namespace detail {
       for( uint64_t i = 0; i < initial_state.initial_active_miners; ++i )
       {
          auto name = "miner"+fc::to_string(i);
-		 //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
-		 auto name_key = fc::ecc::private_key::generate();
-		 std::cout << name << " " <<std::string(public_key_type(name_key.get_public_key())) << "," << utilities::key_to_wif(name_key) << std::endl;
-		 dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
+         //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+         auto name_key = fc::ecc::private_key::generate();
+         std::cout << name << " " <<std::string(public_key_type(name_key.get_public_key())) << "," << utilities::key_to_wif(name_key) << std::endl;
+         dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
          initial_state.initial_accounts.emplace_back(name,
-			                                         name_key.get_public_key(),
-			                                         name_key.get_public_key(),
+                                                     name_key.get_public_key(),
+                                                     name_key.get_public_key(),
                                                      true);
          
          initial_state.initial_miner_miners.push_back({name, name_key.get_public_key()});
       }
 
-	  for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MAX_GUARDS; i++)
-	  {
-		  auto name = "wallfacer" + fc::to_string(i);
-		  //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
-		  auto name_key = fc::ecc::private_key::generate();
-		  dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
-		  std::cout << name << " " << std::string(public_key_type(name_key.get_public_key())) << "," << utilities::key_to_wif(name_key) << std::endl;
-		  initial_state.initial_accounts.emplace_back(name,
-			                                          name_key.get_public_key(),
-			                                          name_key.get_public_key(),
-			                                          true);
-		  genesis_state_type::initial_committee_member_type wallfacer;
-		  if (i < 5)
-		  {
-			  wallfacer.owner_name = name;
-			  wallfacer.type = PERMANENT;
-			  initial_state.initial_wallfacer_miners.push_back(wallfacer);
-		  }
-		  else {
-			  wallfacer.owner_name = name;
-			  wallfacer.type = EXTERNAL;
-			  initial_state.initial_wallfacer_miners.push_back(wallfacer);
-		  }
-		  
+      for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MAX_GUARDS; i++)
+      {
+          auto name = "wallfacer" + fc::to_string(i);
+          //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+          auto name_key = fc::ecc::private_key::generate();
+          dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
+          std::cout << name << " " << std::string(public_key_type(name_key.get_public_key())) << "," << utilities::key_to_wif(name_key) << std::endl;
+          initial_state.initial_accounts.emplace_back(name,
+                                                      name_key.get_public_key(),
+                                                      name_key.get_public_key(),
+                                                      true);
+          genesis_state_type::initial_committee_member_type wallfacer;
+          if (i < 5)
+          {
+              wallfacer.owner_name = name;
+              wallfacer.type = PERMANENT;
+              initial_state.initial_wallfacer_miners.push_back(wallfacer);
+          }
+          else {
+              wallfacer.owner_name = name;
+              wallfacer.type = EXTERNAL;
+              initial_state.initial_wallfacer_miners.push_back(wallfacer);
+          }
+          
 
-	  }
+      }
 
       initial_state.initial_accounts.emplace_back("xwc", test_nathan_key.get_public_key());
       initial_state.initial_balances.push_back({ test_nathan_key.get_public_key(),
                                                 GRAPHENE_SYMBOL,
-		                                        GRAPHENE_INITIAL_SHARE_SUPPLY });
+                                                GRAPHENE_INITIAL_SHARE_SUPPLY });
       initial_state.initial_chain_id = fc::sha256::hash( "BOGUS" );
 
       return initial_state;
@@ -149,7 +149,7 @@ namespace detail {
       fc::optional<fc::temp_file> _lock_file;
       bool _is_block_producer = false;
       bool _force_validate = false;
-	  bool _stop_block_processing = false;
+      bool _stop_block_processing = false;
       void reset_p2p_node(const fc::path& data_dir)
       { try {
          _p2p_network = std::make_shared<net::node>("XMCs Reference Implementation");
@@ -199,14 +199,14 @@ namespace detail {
          else
          {
             vector<string> seeds = {
-				
-				"120.24.70.131:23456",
-				"120.79.93.99:23456",
-				"39.108.173.165:23456",
-				"47.106.146.252:23456",
-				"47.106.96.168:23456",
-				"47.56.106.1:23456"
-				
+                
+                "120.24.70.131:23456",
+                "120.79.93.99:23456",
+                "39.108.173.165:23456",
+                "47.106.146.252:23456",
+                "47.106.96.168:23456",
+                "47.56.106.1:23456"
+                
             };
             for( const string& endpoint_string : seeds )
             {
@@ -235,7 +235,7 @@ namespace detail {
          _p2p_network->sync_from(net::item_id(net::core_message_type_enum::block_message_type,
                                               _chain_db->head_block_id()),
                                  std::vector<uint32_t>());
-		 
+         
       } FC_CAPTURE_AND_RETHROW() }
 
       std::vector<fc::ip::endpoint> resolve_string_to_ip_endpoints(const std::string& endpoint_string)
@@ -339,7 +339,7 @@ namespace detail {
       ~application_impl()
       {
          fc::remove_all(_data_dir / "blockchain/dblock");
-		 std::cout << "remove dblock" << std::endl;
+         std::cout << "remove dblock" << std::endl;
       }
 
       void set_dbg_init_key( genesis_state_type& genesis, const std::string& init_key )
@@ -350,104 +350,104 @@ namespace detail {
             genesis.initial_miner_miners[i].block_signing_key = init_pubkey;
          return;
       }
-	  void stop_block_processing()
-	  {
-		  _stop_block_processing = true;
-		  _chain_db->stop_process = true;
-	  }
-	  void start_block_processing()
-	  {
-		  _stop_block_processing = false;
-		  _chain_db->stop_process = false;
-	  }
+      void stop_block_processing()
+      {
+          _stop_block_processing = true;
+          _chain_db->stop_process = true;
+      }
+      void start_block_processing()
+      {
+          _stop_block_processing = false;
+          _chain_db->stop_process = false;
+      }
       void startup()
       { try {
          bool clean = !fc::exists(_data_dir / "blockchain/dblock");
          fc::create_directories(_data_dir / "blockchain/dblock");
-		 if (_options->count("crosschain-ip"))
-		 {
-			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
-			 string port = "80";
-			 if (_options->count("crosschain-port"))
-			 {
-				 port = _options->at("crosschain-port").as<string>();
-			 }
-			 ilog("crosschain-ip: ${crosschain-ip},port:${port}", ("crosschain-ip", crosschain_ip)("port", port));
-			 auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-			 auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
-			 auto config_var = fc::json::from_string(config).get_object();
-			 //std::cout << _options->count("chain-type") << std::endl;
-			 if (_options->count("chain-type"))
-			 {
-				 //std::set<std::string> _chain_types;
-				 //LOAD_VALUE_SET(_options, "chain-type", _chain_types, std::string);
-				 //const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
-				 //auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
-				 auto chain_types_str = _options->at("chain-type").as<std::string>();
-				 auto chain_type_vector = graphene::app::dejsonify<vector<string>>(chain_types_str);
-				 if (_options->count("midware_servers_backup"))
-				 {
-					 auto eps_str = _options->at("midware_servers_backup").as<string>();
-					 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
-					 vector<fc::ip::endpoint> midware_sers;
-					 for (auto& str : ep_strs)
-					 {
-						 midware_sers.push_back(fc::ip::endpoint::from_string(str));
-					 }
-					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
-				 }
-				 else
-				 {
-					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("120.79.93.99:5005"),fc::ip::endpoint::from_string("120.79.93.99:5005") };
-					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
-				 }
-				 if (_options->count("midware_servers"))
-				 {
-					 auto eps_str = _options->at("midware_servers").as<string>();
-					 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
-					 vector<fc::ip::endpoint> midware_sers;
-					 for (auto& str : ep_strs)
-					 {
-						 midware_sers.push_back(fc::ip::endpoint::from_string(str));
-					 }
-					 abstract_crosschain_interface::set_midwares(midware_sers);
-					 abstract_crosschain_interface::b_get_eps_from_service = false;
-				 }
-				 else
-				 {
-					 std::vector<fc::ip::endpoint> midware_seeds;
-					 if (midware_seeds.size() == 0)
-					 {
-						 if(abstract_crosschain_interface::midware_eps_backup.size()!=0)
-							 abstract_crosschain_interface::set_midwares(abstract_crosschain_interface::midware_eps_backup);
-						 else
-						 {
-							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("120.79.93.99:5005")};
-							 abstract_crosschain_interface::set_midwares(midware_sers);
-						 }
-					 }
-					 else
-					 {
-						 abstract_crosschain_interface::set_midwares(midware_seeds);
-					 }
-				 }
-				 if (chain_type_vector.size() > 0)
-				 {
-					 auto chain_types = chain_type_vector;
+         if (_options->count("crosschain-ip"))
+         {
+             auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
+             string port = "80";
+             if (_options->count("crosschain-port"))
+             {
+                 port = _options->at("crosschain-port").as<string>();
+             }
+             ilog("crosschain-ip: ${crosschain-ip},port:${port}", ("crosschain-ip", crosschain_ip)("port", port));
+             auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+             auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
+             auto config_var = fc::json::from_string(config).get_object();
+             //std::cout << _options->count("chain-type") << std::endl;
+             if (_options->count("chain-type"))
+             {
+                 //std::set<std::string> _chain_types;
+                 //LOAD_VALUE_SET(_options, "chain-type", _chain_types, std::string);
+                 //const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
+                 //auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
+                 auto chain_types_str = _options->at("chain-type").as<std::string>();
+                 auto chain_type_vector = graphene::app::dejsonify<vector<string>>(chain_types_str);
+                 if (_options->count("midware_servers_backup"))
+                 {
+                     auto eps_str = _options->at("midware_servers_backup").as<string>();
+                     auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
+                     vector<fc::ip::endpoint> midware_sers;
+                     for (auto& str : ep_strs)
+                     {
+                         midware_sers.push_back(fc::ip::endpoint::from_string(str));
+                     }
+                     abstract_crosschain_interface::set_midwares_backup(midware_sers);
+                 }
+                 else
+                 {
+                     vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("120.79.93.99:5005"),fc::ip::endpoint::from_string("120.79.93.99:5005") };
+                     abstract_crosschain_interface::set_midwares_backup(midware_sers);
+                 }
+                 if (_options->count("midware_servers"))
+                 {
+                     auto eps_str = _options->at("midware_servers").as<string>();
+                     auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
+                     vector<fc::ip::endpoint> midware_sers;
+                     for (auto& str : ep_strs)
+                     {
+                         midware_sers.push_back(fc::ip::endpoint::from_string(str));
+                     }
+                     abstract_crosschain_interface::set_midwares(midware_sers);
+                     abstract_crosschain_interface::b_get_eps_from_service = false;
+                 }
+                 else
+                 {
+                     std::vector<fc::ip::endpoint> midware_seeds;
+                     if (midware_seeds.size() == 0)
+                     {
+                         if(abstract_crosschain_interface::midware_eps_backup.size()!=0)
+                             abstract_crosschain_interface::set_midwares(abstract_crosschain_interface::midware_eps_backup);
+                         else
+                         {
+                             vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("120.79.93.99:5005")};
+                             abstract_crosschain_interface::set_midwares(midware_sers);
+                         }
+                     }
+                     else
+                     {
+                         abstract_crosschain_interface::set_midwares(midware_seeds);
+                     }
+                 }
+                 if (chain_type_vector.size() > 0)
+                 {
+                     auto chain_types = chain_type_vector;
 
-					 for (auto chain_type : chain_type_vector)
-					 {
-						 //std::cout << chain_type << std::endl;
-						 auto fd = instance.get_crosschain_handle(chain_type);
-						 if (fd != nullptr)
-							 fd->initialize_config(config_var);
-					 }
-					 _self->set_crosschain_chain_types(chain_types);
-					 _self->set_crosschain_manager_config(config);
-				 }
-				 
-			 }
-		 }
+                     for (auto chain_type : chain_type_vector)
+                     {
+                         //std::cout << chain_type << std::endl;
+                         auto fd = instance.get_crosschain_handle(chain_type);
+                         if (fd != nullptr)
+                             fd->initialize_config(config_var);
+                     }
+                     _self->set_crosschain_chain_types(chain_types);
+                     _self->set_crosschain_manager_config(config);
+                 }
+                 
+             }
+         }
          auto initial_state = [&] {
             ilog("Initializing database...");
             if( _options->count("genesis-json") )
@@ -484,23 +484,23 @@ namespace detail {
             else
             {
                std::string egenesis_json;
-			   if (_options->count("testnet")) 
-			   {
-				   _chain_db->ontestnet = true;
-				   graphene::egenesis::compute_testnet_egenesis_json(egenesis_json);
-				   FC_ASSERT(egenesis_json != "");
-				   FC_ASSERT(graphene::egenesis::get_testnet_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
-				   auto genesis = fc::json::from_string(egenesis_json).as<genesis_state_type>();
-				   genesis.initial_chain_id = fc::sha256::hash(egenesis_json);
-				   std::cout<<"start testnet"<<std::endl;
-				   return genesis;
-			   }
-			   graphene::egenesis::compute_egenesis_json(egenesis_json);
-			   FC_ASSERT(egenesis_json != "");
-			   FC_ASSERT(graphene::egenesis::get_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
-			   auto genesis = fc::json::from_string(egenesis_json).as<genesis_state_type>();
-			   genesis.initial_chain_id = fc::sha256::hash(egenesis_json);
-			   return genesis;
+               if (_options->count("testnet")) 
+               {
+                   _chain_db->ontestnet = true;
+                   graphene::egenesis::compute_testnet_egenesis_json(egenesis_json);
+                   FC_ASSERT(egenesis_json != "");
+                   FC_ASSERT(graphene::egenesis::get_testnet_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
+                   auto genesis = fc::json::from_string(egenesis_json).as<genesis_state_type>();
+                   genesis.initial_chain_id = fc::sha256::hash(egenesis_json);
+                   std::cout<<"start testnet"<<std::endl;
+                   return genesis;
+               }
+               graphene::egenesis::compute_egenesis_json(egenesis_json);
+               FC_ASSERT(egenesis_json != "");
+               FC_ASSERT(graphene::egenesis::get_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
+               auto genesis = fc::json::from_string(egenesis_json).as<genesis_state_type>();
+               genesis.initial_chain_id = fc::sha256::hash(egenesis_json);
+               return genesis;
 
             }
          };
@@ -519,14 +519,14 @@ namespace detail {
                loaded_checkpoints[item.first] = item.second;
             }
          }
-		 if (_options->count("rewind-on-close"))
-		 {
-			 _chain_db-> rewind_on_close = true;
-		 }
-		 else
-		 {
-			 _chain_db->rewind_on_close = false;
-		 }
+         if (_options->count("rewind-on-close"))
+         {
+             _chain_db-> rewind_on_close = true;
+         }
+         else
+         {
+             _chain_db->rewind_on_close = false;
+         }
 
          _chain_db->add_checkpoints( loaded_checkpoints );
 
@@ -536,6 +536,7 @@ namespace detail {
          // never replay if data dir is empty
          if( fc::exists( _data_dir ) && fc::directory_iterator( _data_dir ) != fc::directory_iterator() )
          {
+		 #if 0
             if( _options->count("replay-blockchain") )
             {
                replay = true;
@@ -562,52 +563,44 @@ namespace detail {
                    replay_reason = "db_version file content mismatch";
                }
             }
+		 #endif
          }
 
-         if( replay )
-         {
-            // Replay all local block, this operation need more time...
-            ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
-			fc::remove_all(_data_dir / "db_version");
-			_chain_db->reindex(_data_dir / "blockchain", initial_state());
-
-            // Create the db_version file
-			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
-			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
-			std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
-			db_version.write(version_string.c_str(), version_string.size());
-			db_version.close();
-         }
-         else
+         if( !replay )
          {
             try
             {
-                // Backup mode
-				if (_options->count("need-secure"))
-                {
-					if (fc::exists(_data_dir / "blockchain_previous"))
-					{
-						fc::remove_all(_data_dir / "blockchain");
-						fc::copy_file(_data_dir / "blockchain_previous", _data_dir / "blockchain");
-					}
-					else
-					{
-						fc::copy_file(_data_dir / "blockchain", _data_dir / "blockchain_previous");
-					}
-                }
-                
+                if (_options->count("need-secure"))
+                    if (fc::exists(_data_dir / "blockchain_previous"))
+                    {
+                        fc::remove_all(_data_dir / "blockchain");
+                        fc::copy_file(_data_dir / "blockchain_previous", _data_dir / "blockchain");
+                    }
+                    else
+                    {
+                        fc::copy_file(_data_dir / "blockchain", _data_dir / "blockchain_previous");
+                    }
                _chain_db->open( _data_dir / "blockchain", initial_state );
             }
             catch( const fc::exception& e )
             {
                ilog( "Caught exception ${e} in open()", ("e", e.to_detail_string()) );
                replay = true;
-			   fc::remove_all(_data_dir/"blockchain_previous");
+               fc::remove_all(_data_dir/"blockchain_previous");
                replay_reason = "exception in open()";
             }
          }
-
-         
+         if( replay )
+         {
+            ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
+            fc::remove_all(_data_dir / "db_version");
+            _chain_db->reindex(_data_dir / "blockchain", initial_state());
+            const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
+            std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
+            std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
+            db_version.write(version_string.c_str(), version_string.size());
+            db_version.close();
+         }
 
          if( _options->count("force-validate") )
          {
@@ -630,8 +623,8 @@ namespace detail {
             wild_access.allowed_apis.push_back( "network_broadcast_api" );
             wild_access.allowed_apis.push_back( "history_api" );
             wild_access.allowed_apis.push_back( "crypto_api" );
-			wild_access.allowed_apis.push_back("crosschain_api");
-			wild_access.allowed_apis.push_back("transaction_api");
+            wild_access.allowed_apis.push_back("crosschain_api");
+            wild_access.allowed_apis.push_back("transaction_api");
             wild_access.allowed_apis.push_back("network_node_api");
             wild_access.allowed_apis.push_back("miner_api");
             wild_access.allowed_apis.push_back("localnode_api");
@@ -640,9 +633,9 @@ namespace detail {
          reset_p2p_node(_data_dir);
          reset_websocket_server();
          reset_websocket_tls_server();
-		 
-		 // maybe here should add crosschain initialize
-		 
+         
+         // maybe here should add crosschain initialize
+         
 
       } FC_LOG_AND_RETHROW() }
 
@@ -687,32 +680,32 @@ namespace detail {
        *
        * @throws exception if error validating the item, otherwise the item is safe to broadcast on.
        */
-	  virtual bool handle_block(const graphene::net::block_message& blk_msg, bool sync_mode,
-		  std::vector<fc::uint160_t>& contained_transaction_message_ids, bool stoppable=false) override
+      virtual bool handle_block(const graphene::net::block_message& blk_msg, bool sync_mode,
+          std::vector<fc::uint160_t>& contained_transaction_message_ids, bool stoppable=false) override
       { try {
-		  if (stoppable&&_stop_block_processing)
-		  {
-			  FC_CAPTURE_AND_THROW(net::block_process_stopped);
-		  }
-		  static int latency_chk = 0;
-		  static time_point last_chk_tm = fc::time_point::now();
-		  time_point chk_tm = fc::time_point::now();
+          if (stoppable&&_stop_block_processing)
+          {
+              FC_CAPTURE_AND_THROW(net::block_process_stopped);
+          }
+          static int latency_chk = 0;
+          static time_point last_chk_tm = fc::time_point::now();
+          time_point chk_tm = fc::time_point::now();
 
-		  auto latency = fc::time_point::now() - blk_msg.block.timestamp;
-		  if (!sync_mode && ((chk_tm - last_chk_tm) > fc::microseconds(1000000)) && (latency.count() / 1000) < -1000)
-		  {
-			  latency_chk++;
-			  if (latency_chk >= 3)
-			  {
-				  printf("update at time %s because latency", chk_tm.operator fc::string().c_str());
-				  time_point::ntp_update_time();
-				  last_chk_tm = chk_tm;
-			  }
-		  }
-		  else
-		  {
-			  latency_chk = 0;
-		  }
+          auto latency = fc::time_point::now() - blk_msg.block.timestamp;
+          if (!sync_mode && ((chk_tm - last_chk_tm) > fc::microseconds(1000000)) && (latency.count() / 1000) < -1000)
+          {
+              latency_chk++;
+              if (latency_chk >= 3)
+              {
+                  printf("update at time %s because latency", chk_tm.operator fc::string().c_str());
+                  time_point::ntp_update_time();
+                  last_chk_tm = chk_tm;
+              }
+          }
+          else
+          {
+              latency_chk = 0;
+          }
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
             const auto& miner = blk_msg.block.miner(*_chain_db);
@@ -768,8 +761,8 @@ namespace detail {
 
       virtual void handle_transaction(const graphene::net::trx_message& transaction_message) override
       { try {
-		  if (_stop_block_processing)
-			  return;
+          if (_stop_block_processing)
+              return;
          static fc::time_point last_call;
          static int trx_count = 0;
          ++trx_count;
@@ -1043,10 +1036,10 @@ namespace detail {
             // if it's not, we pull it from the fork history
             if (low_block_num <= non_fork_high_block_num)
               synopsis.push_back(_chain_db->get_block_id_for_num(low_block_num));
-			else
-			{
-				synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
-			}
+            else
+            {
+                synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
+            }
               
             low_block_num += (true_high_block_num - low_block_num + 2) / 2;
           }
@@ -1118,12 +1111,12 @@ namespace detail {
       const bpo::variables_map* _options = nullptr;
       api_access _apiaccess;
 
-      std::shared_ptr<graphene::chain::database>           _chain_db;
-      std::shared_ptr<graphene::net::node>                 _p2p_network;
-      std::shared_ptr<fc::http::websocket_server>          _websocket_server;
-      std::shared_ptr<fc::http::websocket_tls_server>      _websocket_tls_server;
+      std::shared_ptr<graphene::chain::database>            _chain_db;
+      std::shared_ptr<graphene::net::node>                  _p2p_network;
+      std::shared_ptr<fc::http::websocket_server>      _websocket_server;
+      std::shared_ptr<fc::http::websocket_tls_server>  _websocket_tls_server;
 
-      std::map<string, std::shared_ptr<abstract_plugin>>   _plugins;
+      std::map<string, std::shared_ptr<abstract_plugin>> _plugins;
 
       bool _is_finished_syncing = false;
    };
@@ -1136,7 +1129,7 @@ application::application()
 
 application::~application()
 {
-	//shutdown();
+    //shutdown();
 }
 
 void application::set_program_options(boost::program_options::options_description& command_line_options,
@@ -1154,9 +1147,9 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("genesis-json", bpo::value<boost::filesystem::path>(), "File to read Genesis State from")
          ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init mineres, overrides genesis file")
          ("api-access", bpo::value<boost::filesystem::path>(), "JSON file specifying API permissions")
-		 ("min_gas_price", bpo::value<int>(), "Miner in this node would not pack contract trx which gas price to low")
-	     ("midware_servers", bpo::value<string>()->composing(), "")
-	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
+         ("min_gas_price", bpo::value<int>(), "Miner in this node would not pack contract trx which gas price to low")
+         ("midware_servers", bpo::value<string>()->composing(), "")
+         ("midware_servers_backup", bpo::value<string>()->composing(), "")
          ;
    command_line_options.add(configuration_file_options);
    command_line_options.add_options()
@@ -1166,14 +1159,14 @@ void application::set_program_options(boost::program_options::options_descriptio
           "invalid file is found, it will be replaced with an example Genesis State.")
          ("replay-blockchain", "Rebuild object graph by replaying all blocks")
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
-		 ("force-validate", "Force validation of all transactions")
-		 ("testnet", "Start for testnet")
-		 ("nop2plog","Do not log p2p info")
-	     ("rewind-on-close", "rewind-on-close")
+         ("force-validate", "Force validation of all transactions")
+         ("testnet", "Start for testnet")
+         ("nop2plog","Do not log p2p info")
+         ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
-	     ("midware_servers", bpo::value<string>()->composing(), "")
-	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
-	     ("need-secure","no need to replay after being get interrupted exceptionally")
+         ("midware_servers", bpo::value<string>()->composing(), "")
+         ("midware_servers_backup", bpo::value<string>()->composing(), "")
+         ("need-secure","no need to replay after being get interrupted exceptionally")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);
@@ -1181,7 +1174,7 @@ void application::set_program_options(boost::program_options::options_descriptio
 
 fc::path application::get_data_dir() const 
 {
-	return my->_data_dir;
+    return my->_data_dir;
 }
 
 void application::initialize(const fc::path& data_dir, const boost::program_options::variables_map& options)
@@ -1260,19 +1253,19 @@ void application::set_api_access_info(const string& username, api_access_info&& 
 
 string application::get_crosschain_manager_config()
 {
-	return _crosschain_config;
+    return _crosschain_config;
 }
 void application::set_crosschain_manager_config(const string& config)
 {
-	_crosschain_config = config;
+    _crosschain_config = config;
 }
 void application::set_crosschain_chain_types(std::vector<std::string> chain_types)
 {
-	_crosschain_chain_types = chain_types;
+    _crosschain_chain_types = chain_types;
 }
 std::vector<string> application::get_crosschain_chain_types()
 {
-	return _crosschain_chain_types;
+    return _crosschain_chain_types;
 }
 
 bool application::is_finished_syncing() const
@@ -1294,11 +1287,11 @@ void application::shutdown_plugins()
 
 void application::stop_block_processing()
 {
-	my->stop_block_processing();
+    my->stop_block_processing();
 }
 void application::start_block_processing()
 {
-	my->start_block_processing();
+    my->start_block_processing();
 }
 
 void application::shutdown()
@@ -1307,8 +1300,8 @@ void application::shutdown()
       my->_p2p_network->close();
    if (my->_chain_db)
    {
-	   my->_chain_db->close();
-	   fc::remove_all(my->_data_dir / "blockchain/dblock");
+       my->_chain_db->close();
+       fc::remove_all(my->_data_dir / "blockchain/dblock");
    }
    fc::remove_all(my->_data_dir / "blockchain_previous");
 }

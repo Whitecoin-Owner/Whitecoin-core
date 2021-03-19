@@ -40,118 +40,89 @@ namespace graphene { namespace chain {
 
 database::database()
 {
-    initialize_indexes();
-    initialize_evaluators();
+   initialize_indexes();
+   initialize_evaluators();
 }
 
 database::~database()
 {
-    clear_pending();
+   clear_pending();
 }
 
 void database::reindex(fc::path data_dir, const genesis_state_type& initial_allocation)
-{ 
-    try
-    {
-    #if 0
-        ilog( "reindexing blockchain" );
-        wipe(data_dir, false);
-        try 
-        {
-            open(data_dir, [&initial_allocation] {return initial_allocation; });
-        }
-        catch (deserialize_fork_database_failed& e)
-        {}
-        catch (deserialize_undo_database_failed& e)
-        {}
+{ try {
+   ilog( "reindexing blockchain" );
+   wipe(data_dir, false);
+   try {
+       open(data_dir, [&initial_allocation] {return initial_allocation; });
+   }
+   catch (deserialize_fork_database_failed& e)
+   {
 
-        auto start = fc::time_point::now();
-        auto last_block = _block_id_to_block.last();
-        if( !last_block ) 
-        {
-            elog( "!no last block" );
-            edump((last_block));
-            return;
-        }
-        
-        const auto last_block_num = last_block->block_num();
-        
-        //_undo_db.reset();
-        _undo_db.set_max_size(1440);
-        _undo_db.enable();
-        _fork_db.set_max_size(1500);
-        _fork_db.reset();
-        _undo_db.discard();
-        _undo_db.enable();
-        _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+   }
+   catch (deserialize_undo_database_failed& e)
+   {
 
-        uint32_t replay_pos = 1;
-        if (last_block_num < 1440)
-        {
-            reinitialize_leveldb();
-            replay_pos = 1;
-        }
-        else 
-        {
-            replay_pos = last_block_num - 1440;
-        }
+   }
+   auto start = fc::time_point::now();
+   auto last_block = _block_id_to_block.last();
+   if( !last_block ) {
+      elog( "!no last block" );
+      edump((last_block));
+      return;
+   }
 
-        ilog( "Replaying blocks...: ${i}",    ("i", replay_pos) );
-        uint32_t undo_enable_num = last_block_num - 1440;
-        for( uint32_t i = replay_pos; i <= last_block_num; ++i )
-        {
-            if( i % 10000 == 0 ) 
-            {
-                std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
-            }
+   const auto last_block_num = last_block->block_num();
 
-            fc::optional< signed_block > block = _block_id_to_block.fetch_by_number(i);
-            if( !block.valid() )
-            {
-                wlog( "Reindexing terminated due to gap:  Block ${i} does not exist!", ("i", i) );
-                uint32_t dropped_count = 0;
-                while( true )
-                {
-                    fc::optional< block_id_type > last_id = _block_id_to_block.last_id();
-                    // this can trigger if we attempt to e.g. read a file that has block #2 but no block #1
-                    if( !last_id.valid() )
-                    {
-                        break;
-                    }
-                        
-                    // we've caught up to the gap
-                    if( block_header::num_from_id( *last_id ) <= i )
-                    {
-                        break;
-                    }
-                    
-                    _block_id_to_block.remove( *last_id );
-                    dropped_count++;
-                }
+   ilog( "Replaying blocks..." );
+   //_undo_db.reset();
+   _undo_db.set_max_size(1440);
+   _undo_db.enable();
+   _fork_db.set_max_size(1500);
+   _fork_db.reset();
+   _undo_db.discard();
+   _undo_db.enable();
+   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+   reinitialize_leveldb();
+   uint32_t undo_enable_num = last_block_num - 1440;
+   for( uint32_t i = 1; i <= last_block_num; ++i )
+   {
+      if( i % 10000 == 0 ) std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
+      fc::optional< signed_block > block = _block_id_to_block.fetch_by_number(i);
+      if( !block.valid() )
+      {
+         wlog( "Reindexing terminated due to gap:  Block ${i} does not exist!", ("i", i) );
+         uint32_t dropped_count = 0;
+         while( true )
+         {
+            fc::optional< block_id_type > last_id = _block_id_to_block.last_id();
+            // this can trigger if we attempt to e.g. read a file that has block #2 but no block #1
+            if( !last_id.valid() )
+               break;
+            // we've caught up to the gap
+            if( block_header::num_from_id( *last_id ) <= i )
+               break;
+            _block_id_to_block.remove( *last_id );
+            dropped_count++;
+         }
+         wlog( "Dropped ${n} blocks from after the gap", ("n", dropped_count) );
+         break;
+      }
+      _fork_db.push_block(*block);
+      if (i >= undo_enable_num)
+          _undo_db.set_max_size(1440);
+      auto session=_undo_db.start_undo_session();
+      apply_block(*block, skip_miner_signature |
+                          skip_transaction_signatures |
+                          skip_transaction_dupe_check |
+                          skip_tapos_check |
+                          skip_witness_schedule_check |
+                          skip_authority_check);
+      session.commit();
+   }
+   auto end = fc::time_point::now();
+   ilog( "Done reindexing, elapsed time: ${t} sec", ("t",double((end-start).count())/1000000.0 ) );
 
-                wlog( "Dropped ${n} blocks from after the gap", ("n", dropped_count) );
-                break;
-            }
-
-            _fork_db.push_block(*block);
-            if (i >= undo_enable_num)
-            {
-                _undo_db.set_max_size(1440);
-            }
-                
-            auto session=_undo_db.start_undo_session();
-            apply_block(*block, skip_miner_signature |
-                                skip_transaction_signatures |
-                                skip_transaction_dupe_check |
-                                skip_tapos_check |
-                                skip_witness_schedule_check |
-                                skip_authority_check);
-            session.commit();
-        }
-
-        auto end = fc::time_point::now();
-        ilog( "Done reindexing, elapsed time: ${t} sec", ("t",double((end-start).count())/1000000.0 ) );
-    #endif
    ////chk
    //auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address>();
    //uint64_t objc = 0;
