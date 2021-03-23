@@ -14,22 +14,22 @@ if( GRAPHENE_DISABLE_UNITY_BUILD )
         db_update.cpp
         db_witness_schedule.cpp
 		db_lock_balance.cpp
-	db_crosschain_trx.cpp
-	db_coldhot_trx.cpp
-	db_pay_back.cpp
-	db_eths_trx.cpp
+	    db_crosschain_trx.cpp
+	    db_coldhot_trx.cpp
+	    db_pay_back.cpp
+	    db_eths_trx.cpp
       )
    message( STATUS "Graphene database unity build disabled" )
 else( GRAPHENE_DISABLE_UNITY_BUILD )
    set( GRAPHENE_DB_FILES
         database.cpp 
-		database_impl.cpp)
+	database_impl.cpp
+      )
    message( STATUS "Graphene database unity build enabled" )
 endif( GRAPHENE_DISABLE_UNITY_BUILD )
 
 ## SORT .cpp by most likely to change / break compile
 add_library( graphene_chain
-
              # As database takes the longest to compile, start it first
              ${GRAPHENE_DB_FILES}
              fork_database.cpp
@@ -59,18 +59,18 @@ add_library( graphene_chain
              protocol/fee_schedule.cpp
              protocol/confidential.cpp
              protocol/vote.cpp
-			eth_seri_record_evaluate.cpp
-			eth_seri_record.cpp
+			 eth_seri_record_evaluate.cpp
+			 eth_seri_record.cpp
              genesis_state.cpp
              get_config.cpp
-	     pts_address.cpp
-	     crosschain_record.cpp
-	     crosschain_record_evaluate.cpp
+	         pts_address.cpp
+	         crosschain_record.cpp
+	         crosschain_record_evaluate.cpp
              account_object.cpp
              evaluator.cpp
              balance_evaluator.cpp
-	     pay_back.cpp
-	     pay_back_evaluator.cpp
+	         pay_back.cpp
+	         pay_back_evaluator.cpp
              account_evaluator.cpp
              assert_evaluator.cpp
              witness_evaluator.cpp
@@ -88,18 +88,16 @@ add_library( graphene_chain
              special_authority.cpp
              buyback.cpp
              coldhot_withdraw.cpp
- 	     wallfacer_lock_balance_evaluator.cpp
-	     wallfacer_refund_balance_evaluator.cpp
-	     lockbalance_evaluator.cpp
+ 	         wallfacer_lock_balance_evaluator.cpp
+	         wallfacer_refund_balance_evaluator.cpp
+	         lockbalance_evaluator.cpp
              asset_object.cpp
              fba_object.cpp
              proposal_object.cpp
 			 referendum_object.cpp
              vesting_balance_object.cpp
              block_database.cpp
-
              is_authorized_asset.cpp
-
              contract.cpp
              storage.cpp
              contract_engine.cpp
@@ -111,9 +109,8 @@ add_library( graphene_chain
              db_contract_trx.cpp
              native_contract.cpp
              Keccak.cpp
-
-	     crosschain_record_evaluate.cpp
-		 cashaddr.cpp
+	         crosschain_record_evaluate.cpp
+		     cashaddr.cpp
              ${HEADERS}
              ${PROTOCOL_HEADERS}
            )
