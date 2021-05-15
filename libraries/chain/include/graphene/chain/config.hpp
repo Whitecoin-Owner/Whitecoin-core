@@ -155,7 +155,7 @@
 #define GRAPHENE_RECENTLY_MISSED_COUNT_INCREMENT             4
 #define GRAPHENE_RECENTLY_MISSED_COUNT_DECREMENT             3
 
-#define GRAPHENE_CURRENT_DB_VERSION                          "XWC2.9"
+#define GRAPHENE_CURRENT_DB_VERSION                          "XWC3.0"
 
 #define GRAPHENE_IRREVERSIBLE_THRESHOLD                      (70 * GRAPHENE_1_PERCENT)
 #define GRAPHENE_REVERSIBLE_BLOCK_COUNT                      3600/5*2
