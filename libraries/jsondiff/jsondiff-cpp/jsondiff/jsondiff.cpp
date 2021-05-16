@@ -148,7 +148,7 @@ namespace jsondiff
 					// 删除元素
 					fc::variants item_diff;
 					item_diff.push_back("-");
-					item_diff.push_back(i);
+					item_diff.push_back(static_cast<uint32_t>(i));
 					item_diff.push_back(a_array[i]);
 					diff_json.push_back(item_diff);
 				}
@@ -160,7 +160,7 @@ namespace jsondiff
 					// 修改元素
 					fc::variants item_diff;
 					item_diff.push_back("~");
-					item_diff.push_back(i);
+					item_diff.push_back(static_cast<uint32_t>(i));
 					item_diff.push_back(item_value_diff->value());
 					diff_json.push_back(item_diff);
 				}
@@ -170,7 +170,7 @@ namespace jsondiff
 				// 不存在于old但是存在于new中
 				fc::variants item_diff;
 				item_diff.push_back("+");
-				item_diff.push_back(i);
+				item_diff.push_back(static_cast<uint32_t>(i));
 				item_diff.push_back(b_array[i]);
 				diff_json.push_back(item_diff);
 			}

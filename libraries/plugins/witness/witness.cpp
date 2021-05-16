@@ -96,12 +96,9 @@ void miner_plugin::plugin_set_program_options(
    string miner_id_example = fc::json::to_string(chain::miner_id_type(5));
    vector<string> chain_type;
    chain_type.push_back("BTC");
-   chain_type.push_back("BCH");
    chain_type.push_back("LTC");
    chain_type.push_back("ETH");
-   chain_type.push_back("ERCPAX");
-   chain_type.push_back("ERCELF");
-   chain_type.push_back("USDT");
+   chain_type.push_back("ERCUSDT");   
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
          ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")

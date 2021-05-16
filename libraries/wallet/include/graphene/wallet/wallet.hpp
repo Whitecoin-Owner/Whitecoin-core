@@ -3168,7 +3168,7 @@ FC_API( graphene::wallet::wallet_api,
         (help)
         (info)
         (about)
-	(extra_imp)
+	    (extra_imp)
 	    (is_locked)
 	    (is_new)
 	    (get_address_pay_back_balance)
@@ -3187,8 +3187,7 @@ FC_API( graphene::wallet::wallet_api,
         (register_account)
         (upgrade_account)
 	    (wallet_create_account)
-        (wallfacer_change_eth_gas_price)
-        
+        (wallfacer_change_eth_gas_price)        
         (get_eth_multi_account_trx)
         (get_transaction_id)
         (create_asset)
