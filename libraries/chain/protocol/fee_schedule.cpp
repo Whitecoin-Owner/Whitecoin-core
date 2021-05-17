@@ -28,11 +28,12 @@
 namespace fc
 {
    // explicitly instantiate the smart_ref, gcc fails to instantiate it in some release builds
-   //template graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator=(smart_ref<graphene::chain::fee_schedule>&&);
+   //template graphene::chain::fee_schedule&  smart_ref<graphene::chain::fee_schedule>::operator=(smart_ref<graphene::chain::fee_schedule>&&);
    //template graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator=(U&&);
    //template graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator=(const smart_ref&);
    //template smart_ref<graphene::chain::fee_schedule>::smart_ref();
    //template const graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator*() const;
+	//template smart_ref<graphene::chain::fee_schedule>::smart_ref(const smart_ref&);
 }
 
 #define MAX_FEE_STABILIZATION_ITERATION 4
