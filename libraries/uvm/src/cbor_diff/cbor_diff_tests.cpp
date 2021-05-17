@@ -50,7 +50,6 @@ namespace cbor_diff {
 			auto json_decoded = jsondiff::json_loads(json_encoded).as_double();
 			auto a_decoded = cbor_decode(a_encoded);
 			auto cbor_decoded_value = a_decoded->as_float64();
-			printf("a: %.10f, a_encoded: %s, json_encoded: %s, json_decoded: %.10f, a_decoded: %.10f", a, a_encoded, json_encoded, json_decoded, cbor_decoded_value);
 		}
 		{
 			CborDiff differ;
