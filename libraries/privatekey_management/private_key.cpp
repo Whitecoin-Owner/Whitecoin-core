@@ -245,6 +245,11 @@ namespace graphene { namespace privatekey_management {
 			auto itr = crosschain_prks.insert(std::make_pair(name, new ltc_privatekey()));
 			return itr.first->second;
 		}
+		else if (name == "DOGE")
+		{
+			auto itr = crosschain_prks.insert(std::make_pair(name, new doge_privatekey()));
+			return itr.first->second;
+		}
 	}
 
 

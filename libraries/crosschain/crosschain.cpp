@@ -7,6 +7,7 @@
 #include <graphene/crosschain/crosschain_interface_ltc.hpp>
 #include <graphene/crosschain/crosschain_interface_eth.hpp>
 #include <graphene/crosschain/crosschain_interface_erc.hpp>
+#include <graphene/crosschain/crosschain_interface_doge.hpp>
 #include <graphene/crosschain/crosschain_interface_usdt.hpp>
 namespace graphene {
 	namespace crosschain {
@@ -60,6 +61,11 @@ namespace graphene {
 					std::string chain_type;
 					transform(name.begin(), name.end(), chain_type.begin(), ::tolower);
 					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_erc(name)));
+					return itr.first->second;
+				}
+				else if (name == "DOGE")
+				{
+					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_doge()));
 					return itr.first->second;
 				}
 			}
