@@ -827,6 +827,34 @@ namespace graphene {
 			return get_transaction_id_without_gas(L);
 		}
 
+		std::string UvmChainApi::get_signature_address(lua_State *L, const char * hash, const char * v, const char * r, const char * s)
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			fc::ecc::compact_signature com_sig;
+			std::string sig;
+			std::string sv(v);
+			std::string sr(r);
+			std::string ss(s);
+			sig = sv + sr + ss;
+			try {
+				
+				fc::from_hex(fc::string(sig), (char *)com_sig.data, size_t(65));
+				std::string shash(hash);
+				
+				fc::sha256 ori_hash(shash);
+				
+				auto pub = fc::ecc::public_key(com_sig, ori_hash, false);
+				
+				auto addr = graphene::chain::address(fc::ecc::public_key(com_sig, ori_hash, false));
+			
+				return string(addr);
+			}
+			catch (...) {
+				return "";
+			}
+			
+		}
+
 		std::string UvmChainApi::get_transaction_id_without_gas(lua_State *L) const {
 			try {
                                 auto evaluator = contract_common_evaluate::get_contract_evaluator(L);

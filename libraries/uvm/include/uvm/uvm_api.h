@@ -605,6 +605,7 @@ namespace uvm {
             virtual uint32_t get_chain_random(lua_State *L) = 0;
 			virtual uint32_t get_chain_safe_random(lua_State *L, bool diff_in_diff_txs) = 0;
             virtual std::string get_transaction_id(lua_State *L) = 0;
+			virtual std::string get_signature_address(lua_State *L, const char * hash, const char * v, const char * r, const char * s) =0;
 			virtual std::string get_transaction_id_without_gas(lua_State *L) const = 0;
             virtual uint32_t get_header_block_num(lua_State *L) = 0;
 			virtual uint32_t get_header_block_num_without_gas(lua_State *L) const = 0;
