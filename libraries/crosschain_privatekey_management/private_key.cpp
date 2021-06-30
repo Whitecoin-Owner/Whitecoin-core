@@ -407,6 +407,169 @@ namespace graphene { namespace privatekey_management {
 	{
 		return this->crosschain_privatekey_base::sign_trx(raw_trx, index);
 	}
+
+
+	void doge_privatekey::init()
+	{
+		set_id(0);
+		//set_pubkey_prefix(0x6F);
+		//set_script_prefix(0x3A);
+		//set_privkey_prefix(0xEF);
+		set_pubkey_prefix(doge_pubkey);
+		set_script_prefix(doge_script);
+		set_privkey_prefix(doge_privkey);
+	}
+
+	std::string  doge_privatekey::get_wif_key()
+	{
+		/*fc::sha256& secret = priv_key.get_secret();
+
+		const size_t size_of_data_to_hash = sizeof(secret) + 1 ;
+		const size_t size_of_hash_bytes = 4;
+		char data[size_of_data_to_hash + size_of_hash_bytes + 1];
+		data[0] = (char)0xB0;
+		memcpy(&data[1], (char*)&secret, sizeof(secret));
+
+		// add compressed byte
+		char value = (char)0x01;
+		memcpy(data + size_of_data_to_hash, (char *)&value, 1);
+		fc::sha256 digest = fc::sha256::hash(data, size_of_data_to_hash);
+		digest = fc::sha256::hash(digest);
+		memcpy(data + size_of_data_to_hash + 1, (char*)&digest, size_of_hash_bytes);
+		return fc::to_base58(data, sizeof(data));*/
+
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+
+		const fc::ecc::private_key& priv_key = get_private_key();
+		const fc::sha256& secret = priv_key.get_secret();
+
+		const size_t size_of_data_to_hash = sizeof(secret) + 2;
+		const size_t size_of_hash_bytes = 4;
+		char data[size_of_data_to_hash + size_of_hash_bytes];
+		data[0] = (char)get_privkey_prefix();
+		memcpy(&data[1], (char*)&secret, sizeof(secret));
+		data[size_of_data_to_hash - 1] = (char)0x01;
+		fc::sha256 digest = fc::sha256::hash(data, size_of_data_to_hash);
+		digest = fc::sha256::hash(digest);
+		memcpy(data + size_of_data_to_hash, (char*)&digest, size_of_hash_bytes);
+		return fc::to_base58(data, sizeof(data));
+
+
+	}
+
+
+
+	std::string doge_privatekey::get_address()
+	{
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+
+		//configure for bitcoin
+		uint8_t version = get_pubkey_prefix();
+		bool compress = true;
+
+		const fc::ecc::private_key& priv_key = get_private_key();
+		fc::ecc::public_key  pub_key = priv_key.get_public_key();
+
+		graphene::chain::pts_address btc_addr(pub_key, compress, version);
+		std::string  addr = btc_addr.operator fc::string();
+
+		return addr;
+	}
+
+	std::string doge_privatekey::sign_message(const std::string& msg)
+	{
+		libbitcoin::wallet::message_signature sign;
+
+		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
+		// 		libbitcoin::wallet::ec_private libbitcoin_priv("L13gvvM3TtL2EmfBdye8tp4tQhcbCG3xz3VPrBjSZL8MeJavLL8K");
+		libbitcoin::data_chunk  data(msg.begin(), msg.end());
+
+		libbitcoin::wallet::sign_message(sign, data, libbitcoin_priv.secret(), true, std::string("Litecoin Signed Message:\n"));
+
+		auto result = libbitcoin::encode_base64(sign);
+		// 		printf("the signed message is %s\n", result.c_str());
+		return result;
+	}
+
+	bool doge_privatekey::verify_message(const std::string addr, const std::string& content, const std::string& encript)
+	{
+		return graphene::utxo::verify_message(addr, content, encript, "Litecoin Signed Message:\n");
+	}
+
+	std::string doge_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx)
+	{
+		try {
+			FC_ASSERT(raw_trx.contains("hex"));
+			FC_ASSERT(raw_trx.contains("trx"));
+			auto tx = raw_trx["trx"].get_object();
+			auto size = tx["vin"].get_array().size();
+			std::string trx = raw_trx["hex"].as_string();
+			for (int index = 0; index < size; index++)
+			{
+				auto endorse = graphene::privatekey_management::create_endorsement(get_wif_key(), redeemscript, trx, index);
+				trx = graphene::privatekey_management::mutisign_trx(endorse, redeemscript, trx, index);
+			}
+			return trx;
+		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
+
+
+
+	}
+
+	std::string doge_privatekey::get_public_key()
+	{
+		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
+
+		libbitcoin::wallet::ec_public libbitcoin_pub = libbitcoin_priv.to_public();
+		std::string pub_hex = libbitcoin_pub.encoded();
+
+		return pub_hex;
+
+	}
+	std::string doge_privatekey::get_address_by_pubkey(const std::string& pub)
+	{
+		return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
+	}
+	fc::optional<fc::ecc::private_key> doge_privatekey::import_private_key(const std::string& wif_key)
+	{
+		/*
+				std::vector<char> wif_bytes;
+				try
+				{
+					wif_bytes = fc::from_base58(wif_key);
+				}
+				catch (const fc::parse_error_exception&)
+				{
+					return fc::optional<fc::ecc::private_key>();
+				}
+				if (wif_bytes.size() < 5)
+					return fc::optional<fc::ecc::private_key>();
+
+				printf("the size is  %d\n", wif_bytes.size());
+
+				std::vector<char> key_bytes(wif_bytes.begin() + 1, wif_bytes.end() - 5);
+
+				fc::ecc::private_key key = fc::variant(key_bytes).as<fc::ecc::private_key>();
+				fc::sha256 check = fc::sha256::hash(wif_bytes.data(), wif_bytes.size() - 5);
+				fc::sha256 check2 = fc::sha256::hash(check);
+
+				if (memcmp((char*)&check, wif_bytes.data() + wif_bytes.size() - 4, 4) == 0 ||
+					memcmp((char*)&check2, wif_bytes.data() + wif_bytes.size() - 4, 4) == 0)
+					return key;
+
+				return fc::optional<fc::ecc::private_key>();*/
+
+		auto key = graphene::utilities::wif_to_key(wif_key);
+		set_key(*key);
+		return key;
+
+	}
+	std::string doge_privatekey::sign_trx(const std::string& raw_trx, int index)
+	{
+		return this->crosschain_privatekey_base::sign_trx(raw_trx, index);
+	}
+
+
 	void bch_privatekey::init()
 	{
 		set_id(0);
@@ -1130,6 +1293,7 @@ namespace graphene { namespace privatekey_management {
 		crosschain_decode.insert(std::make_pair("BTC", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("BCH", &graphene::privatekey_management::bch_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("LTC", &graphene::privatekey_management::ltc_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("DOGE", &graphene::privatekey_management::doge_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("ETH", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("ERC", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("USDT", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
@@ -1160,6 +1324,11 @@ namespace graphene { namespace privatekey_management {
 		else if (name == "LTC")
 		{
 			auto itr = crosschain_prks.insert(std::make_pair(name, new ltc_privatekey()));
+			return itr.first->second;
+		}
+		else if (name == "DOGE")
+		{
+			auto itr = crosschain_prks.insert(std::make_pair(name, new doge_privatekey()));
 			return itr.first->second;
 		}
 		else if (name == "ETH") {

@@ -81,7 +81,11 @@ namespace graphene {
 			auto decode = graphene::utxo::decoderawtransaction(trx,ltc_pubkey,ltc_script);
 			return fc::json::from_string(decode).get_object();
 		}
-		
+		fc::variant_object doge_privatekey::decoderawtransaction(const std::string& trx)
+		{
+			auto decode = graphene::utxo::decoderawtransaction(trx, doge_pubkey, doge_script);
+			return fc::json::from_string(decode).get_object();
+		}
 		fc::variant_object bch_privatekey::decoderawtransaction(const std::string& trx)
 		{
 			auto decode = graphene::utxo::decoderawtransaction_bch(trx, btc_pubkey, btc_script);

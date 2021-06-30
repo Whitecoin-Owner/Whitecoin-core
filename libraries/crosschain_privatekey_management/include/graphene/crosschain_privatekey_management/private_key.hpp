@@ -13,7 +13,14 @@ const int ltc_pubkey = 0x30;
 const int ltc_script = 0x32;
 const int ltc_privkey = 0xB0;
 
-
+const int doge_pubkey = 0x1e;
+const int doge_script = 0x16;
+const int doge_privkey = 0x9e;
+/*
+const int doge_pubkey = 0x6f;
+const int doge_script = 0xc4;
+const int doge_privkey = 0xef;
+*/
 namespace graphene {
 	namespace privatekey_management {
 
@@ -104,6 +111,26 @@ namespace graphene {
 			void init();
 
 		};
+		class doge_privatekey : public crosschain_privatekey_base
+		{
+		public:
+			doge_privatekey() { init(); };
+			doge_privatekey(fc::ecc::private_key& priv_key) : crosschain_privatekey_base(priv_key) { init(); };
+
+			virtual std::string get_wif_key();
+			virtual std::string get_address();
+			virtual std::string get_public_key();
+			virtual std::string get_address_by_pubkey(const std::string& pub);
+			virtual std::string  sign_message(const std::string& msg);
+			virtual bool verify_message(const std::string addr, const std::string& content, const std::string& encript);
+			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
+			static  fc::variant_object  decoderawtransaction(const std::string& trx);
+			virtual std::string  sign_trx(const std::string& raw_trx, int index);
+		private:
+			void init();
+		};
+
 		class bch_privatekey : public crosschain_privatekey_base
 		{
 		public:

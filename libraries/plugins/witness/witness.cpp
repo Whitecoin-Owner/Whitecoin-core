@@ -97,6 +97,7 @@ void miner_plugin::plugin_set_program_options(
    vector<string> chain_type;
    chain_type.push_back("BTC");
    chain_type.push_back("LTC");
+   chain_type.push_back("DOGE");
    chain_type.push_back("ETH");
    chain_type.push_back("ERCUSDT");   
    command_line_options.add_options()
