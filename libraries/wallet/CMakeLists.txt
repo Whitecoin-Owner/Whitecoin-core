@@ -1,7 +1,12 @@
 file(GLOB HEADERS "include/graphene/wallet/*.hpp")
 
-find_package( Perl )
-find_package( Doxygen )
+IF(WIN32)
+  #find_package( Perl )
+  #find_package( Doxygen )
+ELSE()
+  find_package( Perl )
+  find_package( Doxygen )
+ENDIF()
 
 if( PERL_FOUND AND DOXYGEN_FOUND AND NOT "${CMAKE_GENERATOR}" STREQUAL "Ninja" )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile )

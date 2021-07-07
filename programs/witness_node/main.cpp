@@ -94,8 +94,6 @@ LONG WINAPI UnhandledExceptionFilterEx(struct _EXCEPTION_POINTERS *pException)
 
 using namespace graphene;
 namespace bpo = boost::program_options;
-
-#define WITENESS_NODE_VERSION "1.3.0"
          
 void write_default_logging_config_to_stream(std::ostream& out);
 fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename, const std::set<std::string> discard_logs=std::set<std::string>());

@@ -63,8 +63,6 @@ using namespace graphene::wallet;
 using namespace std;
 namespace bpo = boost::program_options;
 
-#define CLI_WALLET_VERSION "1.3.0"
-
 int main( int argc, char** argv )
 {
    try {

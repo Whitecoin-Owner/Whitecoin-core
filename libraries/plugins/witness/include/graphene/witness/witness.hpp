@@ -29,6 +29,9 @@
 
 #include <fc/thread/future.hpp>
 #include <mutex>
+
+#define WITENESS_NODE_VERSION "1.3.1"
+
 namespace graphene { namespace miner_plugin {
 
 namespace block_production_condition

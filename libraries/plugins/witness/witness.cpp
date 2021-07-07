@@ -99,19 +99,19 @@ void miner_plugin::plugin_set_program_options(
    chain_type.push_back("LTC");
    chain_type.push_back("DOGE");
    chain_type.push_back("ETH");
-   chain_type.push_back("ERCUSDT");   
+   chain_type.push_back("ERCUSDT");
+
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
          ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
          ("miner-id,w", bpo::value<vector<string>>()->composing()->multitoken(),
-          ("ID of miner controlled by this node (e.g. " + miner_id_example + ", quotes are required, may specify one times)").c_str())
-         ("private-key", bpo::value<string>()->composing()->
-          DEFAULT_VALUE_VECTOR(vec),
-          "Tuple of [PublicKey, WIF private key] (just append)")
-		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("120.79.93.99"))
-	    ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
-	    ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
+         ("ID of miner controlled by this node (e.g. " + miner_id_example + ", quotes are required, may specify one times)").c_str())
+         ("private-key", bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(vec), "Tuple of [PublicKey, WIF private key] (just append)")
+		 ("crosschain-ip,w", bpo::value<string>()->composing()->default_value("47.243.131.113"))
+	     ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
+	     ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
          ;
+
    config_file_options.add(command_line_options);
 }
 
