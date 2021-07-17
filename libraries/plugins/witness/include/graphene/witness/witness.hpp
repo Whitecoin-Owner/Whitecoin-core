@@ -29,6 +29,10 @@
 
 #include <fc/thread/future.hpp>
 #include <mutex>
+
+#define WITENESS_NODE_VERSION  "1.3.2"
+#define WITENESS_CFG_SIGNATURE "293CF9B0-1879-441C-AC77-7C4B74BFEA5"
+
 namespace graphene { namespace miner_plugin {
 
 namespace block_production_condition
@@ -82,7 +86,7 @@ private:
    fc::variant check_generate_multi_addr(chain::miner_id_type miner,fc::ecc::private_key prk);
    void check_eths_generate_multi_addr(chain::miner_id_type miner, fc::ecc::private_key prk);
    void check_multi_transfer(chain::miner_id_type miner, fc::ecc::private_key prk);
-boost::program_options::variables_map _options;
+   boost::program_options::variables_map _options;
    volatile bool _production_enabled = false;
    bool _consecutive_production_enabled = false;
    uint32_t _required_miner_participation = 33 * GRAPHENE_1_PERCENT;

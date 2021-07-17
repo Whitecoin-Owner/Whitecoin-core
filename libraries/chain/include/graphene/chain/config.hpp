@@ -141,12 +141,12 @@
  * every second, the fraction of burned core asset which cycles is
  * GRAPHENE_CORE_ASSET_CYCLE_RATE / (1 << GRAPHENE_CORE_ASSET_CYCLE_RATE_BITS)
  */
-#define GRAPHENE_CORE_ASSET_CYCLE_RATE                        17
-#define GRAPHENE_CORE_ASSET_CYCLE_RATE_BITS                   32
+#define GRAPHENE_CORE_ASSET_CYCLE_RATE                       17
+#define GRAPHENE_CORE_ASSET_CYCLE_RATE_BITS                  32
 
-#define GRAPHENE_DEFAULT_WITNESS_PAY_PER_BLOCK            (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t( 10) )
-#define GRAPHENE_DEFAULT_miner_pay_vesting_seconds      (60*60*24)
-#define GRAPHENE_DEFAULT_WORKER_BUDGET_PER_DAY            (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t(500) * 1000 )
+#define GRAPHENE_DEFAULT_WITNESS_PAY_PER_BLOCK               (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t( 10) )
+#define GRAPHENE_DEFAULT_miner_pay_vesting_seconds           (60*60*24)
+#define GRAPHENE_DEFAULT_WORKER_BUDGET_PER_DAY               (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t(500) * 1000 )
 
 #define GRAPHENE_DEFAULT_MINIMUM_FEEDS                       7
 
@@ -161,20 +161,20 @@
 #define GRAPHENE_REVERSIBLE_BLOCK_COUNT                      3600/5*2
 #define GRAPHENE_PRODUCT_PER_ROUND							 25
 
-#define XWC_MIN_GAS_PRICE                              0
-#define XWC_MAX_GAS_LIMIT                              100000000
+#define XWC_MIN_GAS_PRICE                                    0
+#define XWC_MAX_GAS_LIMIT                                    100000000
 
 #define GRAPHENE_MINER_PAY_RATIO							 0
 #define GRAPHENE_MINER_PLEDGE_PAY_RATIO						 100
 #define GRAPHENE_MINER_PAY_BACK_RATIO						 50
 #define GRAPHENE_GUARD_PAY_RATIO							 20
 #define GRAPHENE_ALL_MINER_PAY_RATIO						 50
-#define XWC_DEVELOP_TEAM_PAY_TATIO                            30
-#define XWC_REFERENDUM_PACKING_PERIOD                         24*3600
-#define XWC_REFERENDUM_VOTING_PERIOD                          7*24*3600
-#define XWC_CHECK_POINT                                       "00454660f85362eb7e4342b34220ca299e74dd41"
-#define XWC_CHECK_POINT_BLOCK                                 4540000
-#define GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM						10
+#define XWC_DEVELOP_TEAM_PAY_TATIO                           30
+#define XWC_REFERENDUM_PACKING_PERIOD                        24*3600
+#define XWC_REFERENDUM_VOTING_PERIOD                         7*24*3600
+#define XWC_CHECK_POINT                                      "00454660f85362eb7e4342b34220ca299e74dd41"
+#define XWC_CHECK_POINT_BLOCK                                4540000
+#define GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM					 10
 /**
  *  Reserved Account IDs with special meaning
  */
@@ -196,4 +196,3 @@
 ///@}
 
 #define GRAPHENE_FBA_STEALTH_DESIGNATED_ASSET (asset_id_type(743))
-#define GRAPHENE_MIDWARE_SEED  {"120.79.93.99"}

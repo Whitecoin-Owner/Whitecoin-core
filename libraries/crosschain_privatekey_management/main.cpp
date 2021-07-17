@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 		}
 		getchar();
 		fc::http::connection_sync conn;
-		conn.connect_to(fc::ip::endpoint(fc::ip::address("120.79.93.99"),80));
+		conn.connect_to(fc::ip::endpoint(fc::ip::address("112.5.37.213"),80));
 		//auto res = conn.parse_reply();
 		auto response = conn.request("GET", "http://1000896736104835.cn-hongkong.fc.aliyuncs.com/2016-08-15/proxy/query_XWC_middleware_endpoint/query_middleware_endpoint/", " ");
 		std::cout << response.body << std::endl;

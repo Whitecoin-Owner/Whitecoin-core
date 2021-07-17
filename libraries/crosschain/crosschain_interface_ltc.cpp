@@ -860,7 +860,7 @@ namespace graphene {
 					{
 						ep_idx = -1;
 						std::vector<fc::ip::endpoint> temp;
-						auto str = "120.79.93.99:5005";
+						const static auto str = "112.5.37.213:5005";
 						temp.push_back(fc::ip::endpoint::from_string(str));
 						if (temp.size() != 0)
 							set_midwares(temp);
