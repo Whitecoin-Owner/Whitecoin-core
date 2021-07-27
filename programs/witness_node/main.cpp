@@ -239,7 +239,7 @@ int main(int argc, char** argv) {
 
       node->startup();
       node->startup_plugins();
-	  node->chain_database()->broad_trxs.connect([&](const deque<signed_transaction>& b) {
+	  node->chain_database()->broad_trxs.connect([&](deque<signed_transaction> b) {
 		  try {
 			  for (const auto& one_trx : b) {
 				  node->p2p_node()->broadcast_transaction(one_trx);

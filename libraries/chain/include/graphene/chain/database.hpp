@@ -191,8 +191,8 @@ namespace graphene { namespace chain {
 		 *  released.
 		 */
 		 fc::signal<void(const signed_block&)>           applied_block;
-		 fc::signal<void(const vector<signed_transaction>&)>  removed_trxs;
-		 fc::signal<void(const deque< signed_transaction>&)> broad_trxs;
+		 fc::signal<void(vector<signed_transaction>)>  removed_trxs;
+		 fc::signal<void(deque< signed_transaction>)> broad_trxs;
          /**
           * This signal is emitted any time a new transaction is added to the pending
           * block state.

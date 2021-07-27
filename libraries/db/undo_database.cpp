@@ -400,7 +400,7 @@ void undo_database::pop_commit()
 			   _stack.pop_back();
 		   }
 	   } 
-	   std::cout << "back_size:" << back.size() << std::endl;
+	   //std::cout << "back_size:" << back.size() << std::endl;
    }
 
    catch ( const fc::exception& e )
