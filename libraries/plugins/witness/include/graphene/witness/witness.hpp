@@ -30,7 +30,7 @@
 #include <fc/thread/future.hpp>
 #include <mutex>
 
-#define WITENESS_NODE_VERSION  "1.3.2"
+#define WITENESS_NODE_VERSION  "1.3.3"
 #define WITENESS_CFG_SIGNATURE "293CF9B0-1879-441C-AC77-7C4B74BFEA5"
 
 namespace graphene { namespace miner_plugin {
@@ -48,7 +48,7 @@ namespace block_production_condition
       lag = 6,
       consecutive = 7,
       exception_producing_block = 8,
-	  stopped = 9
+      stopped = 9
    };
 }
 

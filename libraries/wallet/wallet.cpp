@@ -673,30 +673,32 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = CLI_WALLET_VERSION;
+	    result["version"] = CLI_WALLET_VERSION;
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
 	  
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
-	  result["round_participation"] =100.0 * dynamic_props.round_produced_miners.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);
-	  auto scheduled_miners = _remote_db->list_scheduled_miners();
-	  result["scheduled_miners"] = scheduled_miners;
+	    result["round_participation"] =100.0 * dynamic_props.round_produced_miners.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);
+	    auto scheduled_miners = _remote_db->list_scheduled_miners();
+	    result["scheduled_miners"] = scheduled_miners;
       //result["active_wallfacer_members"] = global_props.active_committee_members;
       return result;
    }
 
    variant_object about() const
    {
+   #if 0
       string client_version( graphene::utilities::git_revision_description );
       const size_t pos = client_version.find( '/' );
       if( pos != string::npos && client_version.size() > pos )
          client_version = client_version.substr( pos + 1 );
+   #endif
 
       fc::mutable_variant_object result;
       //result["blockchain_name"]        = BLOCKCHAIN_NAME;
       //result["blockchain_description"] = LNK_BLOCKCHAIN_DESCRIPTION;
-      result["client_version"]           = client_version;
+      result["client_version"]           = CLI_WALLET_VERSION; //client_version;
       result["graphene_revision"]        = graphene::utilities::git_revision_sha;
       result["graphene_revision_age"]    = fc::get_approximate_relative_time_string( fc::time_point_sec( graphene::utilities::git_revision_unix_timestamp ) );
       result["fc_revision"]              = fc::git_revision_sha;
