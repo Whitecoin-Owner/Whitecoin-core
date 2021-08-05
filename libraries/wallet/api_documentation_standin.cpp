@@ -81,11 +81,13 @@ namespace graphene { namespace wallet {
 
    api_documentation::api_documentation()
    {
+   #ifndef __APPLE__
       fc::api<wallet_api> tmp;
       detail::help_visitor visitor;
       tmp->visit(visitor);
       std::copy(visitor.method_descriptions.begin(), visitor.method_descriptions.end(),
                 std::inserter(method_descriptions, method_descriptions.end()));
+   #endif
    }
 
 } } // end namespace graphene::wallet

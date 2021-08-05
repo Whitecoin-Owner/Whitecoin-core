@@ -28,6 +28,7 @@
 #include <graphene/wallet/contract_event_handler.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
+#include <fc/rpc/api_connection.hpp>
 using namespace graphene::app;
 using namespace graphene::chain;
 using namespace graphene::utilities;
@@ -444,7 +445,9 @@ class wallet_api
       bool copy_wallet_file( string destination_filename );
 
       fc::ecc::private_key derive_private_key(const std::string& prefix_string, int sequence_number) const;
-	  void change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum);
+
+	    void change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum);
+
       variant                           info();
       /** Returns info such as client version, git version of graphene/fc, version of boost, openssl.
        * @returns compile time info and client and dependencies versions

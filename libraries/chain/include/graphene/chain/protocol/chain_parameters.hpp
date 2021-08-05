@@ -52,8 +52,8 @@ namespace graphene { namespace chain {
       uint8_t                 maximum_asset_whitelist_authorities = GRAPHENE_DEFAULT_MAX_ASSET_WHITELIST_AUTHORITIES; ///< maximum number of accounts which an asset may list as authorities for its whitelist OR blacklist
       uint8_t                 maximum_asset_feed_publishers       = GRAPHENE_DEFAULT_MAX_ASSET_FEED_PUBLISHERS; ///< the maximum number of feed publishers for a given asset
       uint16_t                maximum_miner_count                 = GRAPHENE_DEFAULT_MAX_MINERS; ///< maximum number of active miners
-      uint16_t                maximum_wallfacer_count                 = GRAPHENE_DEFAULT_MAX_GUARDS; ///< maximum number of active wallfacer_members
-      uint16_t                minimum_wallfacer_count                 = GRAPHENE_DEFAULT_MIN_GUARDS; ///< minimum number of active wallfacer_members
+      uint16_t                maximum_wallfacer_count             = GRAPHENE_DEFAULT_MAX_GUARDS; ///< maximum number of active wallfacer_members
+      uint16_t                minimum_wallfacer_count             = GRAPHENE_DEFAULT_MIN_GUARDS; ///< minimum number of active wallfacer_members
       uint16_t                maximum_authority_membership        = GRAPHENE_DEFAULT_MAX_AUTHORITY_MEMBERSHIP; ///< largest number of keys/accounts an authority can have
       uint16_t                reserve_percent_of_fee              = GRAPHENE_DEFAULT_BURN_PERCENT_OF_FEE; ///< the percentage of the network's allocation of a fee that is taken out of circulation
       uint16_t                network_percent_of_fee              = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE; ///< percent of transaction fees paid to network
@@ -62,24 +62,32 @@ namespace graphene { namespace chain {
       share_type              cashback_vesting_threshold          = GRAPHENE_DEFAULT_CASHBACK_VESTING_THRESHOLD; ///< the maximum cashback that can be received without vesting
       bool                    count_non_member_votes              = true; ///< set to false to restrict voting privlegages to member accounts
       bool                    allow_non_member_whitelists         = false; ///< true if non-member accounts may set whitelists and blacklists; false otherwise
-      share_type              miner_pay_per_block               = GRAPHENE_DEFAULT_WITNESS_PAY_PER_BLOCK; ///< CORE to be allocated to witnesses (per block)
-      uint32_t                miner_pay_vesting_seconds         = GRAPHENE_DEFAULT_miner_pay_vesting_seconds; ///< vesting_seconds parameter for witness VBO's
+      share_type              miner_pay_per_block                 = GRAPHENE_DEFAULT_WITNESS_PAY_PER_BLOCK; ///< CORE to be allocated to witnesses (per block)
+      uint32_t                miner_pay_vesting_seconds           = GRAPHENE_DEFAULT_miner_pay_vesting_seconds; ///< vesting_seconds parameter for witness VBO's
       share_type              worker_budget_per_day               = GRAPHENE_DEFAULT_WORKER_BUDGET_PER_DAY; ///< CORE to be allocated to workers (per day)
       uint16_t                max_predicate_opcode                = GRAPHENE_DEFAULT_MAX_ASSERT_OPCODE; ///< predicate_opcode must be less than this number
       share_type              fee_liquidation_threshold           = GRAPHENE_DEFAULT_FEE_LIQUIDATION_THRESHOLD; ///< value in CORE at which accumulated fees in blockchain-issued market assets should be liquidated
       uint16_t                accounts_per_fee_scale              = GRAPHENE_DEFAULT_ACCOUNTS_PER_FEE_SCALE; ///< number of accounts between fee scalings
       uint8_t                 account_fee_scale_bitshifts         = GRAPHENE_DEFAULT_ACCOUNT_FEE_SCALE_BITSHIFTS; ///< number of times to left bitshift account registration fee at each scaling
       uint8_t                 max_authority_depth                 = GRAPHENE_MAX_SIG_CHECK_DEPTH;
-	  uint64_t				  minimum_pledge_weight_line		  = GRAPHENE_MIN_PLEDGE_WEIGHT_LINE;
-	  flat_map<string,asset>         minimum_wallfacer_pledge_line			  ;
-	  share_type              bonus_distribute_limit = GRAPHENE_BONUS_DISTRIBUTE_LIMIT;
-	  share_type			 min_pay_back_balance = GRAPHENE_DEFAULT_MIN_PAY_BACK_BALANCE;
-	  flat_map<string, asset>  min_pay_back_balance_other_asset;
-	  int64_t               validate_time_period = GRAPHENE_VALIDATE_CROSSCHAIN_PERIOD;
+      uint64_t                minimum_pledge_weight_line          = GRAPHENE_MIN_PLEDGE_WEIGHT_LINE;
+      flat_map<string,asset>  minimum_wallfacer_pledge_line;
+      share_type              bonus_distribute_limit              = GRAPHENE_BONUS_DISTRIBUTE_LIMIT;
+      share_type              min_pay_back_balance                = GRAPHENE_DEFAULT_MIN_PAY_BACK_BALANCE;
+      flat_map<string, asset> min_pay_back_balance_other_asset;
+      int64_t                 validate_time_period                = GRAPHENE_VALIDATE_CROSSCHAIN_PERIOD;
       extensions_type         extensions;
 
       /** defined in fee_schedule.cpp */
       void validate()const;
+
+   #ifdef __APPLE__
+      chain_parameters();
+      chain_parameters(const chain_parameters& other);
+
+   private:
+     static void safe_copy(chain_parameters& to, const chain_parameters& from);
+   #endif
    };
 
 } }  // graphene::chain
@@ -114,7 +122,7 @@ FC_REFLECT( graphene::chain::chain_parameters,
             (accounts_per_fee_scale)
             (account_fee_scale_bitshifts)
             (max_authority_depth)
-			(min_pay_back_balance)
-			(min_pay_back_balance_other_asset)
+            (min_pay_back_balance)
+            (min_pay_back_balance_other_asset)
             (extensions)
           )

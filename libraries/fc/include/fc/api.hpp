@@ -53,8 +53,8 @@ namespace fc {
 
         virtual uint64_t get_handle()const = 0;
 
-        virtual api_id_type register_api( api_connection& conn )const = 0;
-
+        virtual api_id_type register_api( api_connection& conn ) const = 0;
+     
         // defined in api_connection.hpp
         template< typename T >
         api<T, identity_member> as();
@@ -88,7 +88,7 @@ namespace fc {
       friend bool operator == ( const api& a, const api& b ) { return a._data == b._data && a._vtable == b._vtable;    }
       friend bool operator != ( const api& a, const api& b ) { return !(a._data == b._data && a._vtable == b._vtable); }
       virtual uint64_t get_handle()const override { return uint64_t(_data.get()); }
-      virtual api_id_type register_api( api_connection& conn )const override;    // defined in api_connection.hpp
+      virtual api_id_type register_api( api_connection& conn ) const override;    // defined in api_connection.hpp
 
       vtable_type& operator*()const  { FC_ASSERT( _vtable ); return *_vtable; }
       vtable_type* operator->()const {  FC_ASSERT( _vtable ); return _vtable.get(); }
