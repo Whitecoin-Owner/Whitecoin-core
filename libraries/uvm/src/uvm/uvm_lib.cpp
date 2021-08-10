@@ -80,7 +80,7 @@ namespace uvm
                 "setmetatable",
 				"hex_to_bytes", "bytes_to_hex", "sha256_hex", "sha1_hex", "sha3_hex", "ripemd160_hex", "get_address_role",
 				"get_pay_back_balance", "get_contract_lock_balance_info_by_asset", "get_contract_lock_balance_info", "foreclose_balance_from_miners", "obtain_pay_back_balance", "lock_contract_balance_to_miner",
-				"cbor_encode", "cbor_decode", "signature_recover", "get_address_role","send_message"
+				"cbor_encode", "cbor_decode", "signature_recover", "get_address_role","send_message","ecrecover"
             };
 
             typedef lua_State* L_Key1;
@@ -171,6 +171,21 @@ namespace uvm
                 lua_pushinteger(L, transfer_result);
                 return 1;
             }
+
+			static int ecrecover(lua_State *L)
+			{
+				if (lua_gettop(L) < 4) {
+					uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "ecrecover need 4 arguments");
+					return 0;
+				}
+				const char * hash = luaL_checkstring(L, 1);
+				const char * v = luaL_checkstring(L, 2);
+				const char * r = luaL_checkstring(L, 3);
+				const char * s = luaL_checkstring(L, 4);
+				auto verify_address = uvm::lua::api::global_uvm_chain_api->get_signature_address(L,hash, v, r, s);
+				lua_pushstring(L, verify_address.c_str());
+				return 1;
+			}
 
             static int get_contract_address_lua_api(lua_State *L)
             {
@@ -1834,6 +1849,7 @@ end
 					add_global_c_function(L, "get_contract_lock_balance_info", &get_contract_lock_balance_info);
 					add_global_c_function(L, "get_contract_lock_balance_info_by_asset", &get_contract_lock_balance_info_by_asset);
 					add_global_c_function(L, "get_pay_back_balance", &get_pay_back_balance);
+					add_global_c_function(L, "ecrecover", &ecrecover);
 
 					lua_getglobal(L, "_G");
 					lua_settableonlyread(L, -1, true);
