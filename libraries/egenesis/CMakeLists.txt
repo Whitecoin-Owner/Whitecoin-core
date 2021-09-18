@@ -16,7 +16,7 @@ add_executable( embed_genesis
 IF(WIN32)
   target_link_libraries( embed_genesis graphene_chain graphene_egenesis_none fc leveldb)
 ELSE()
-  target_link_libraries( embed_genesis graphene_chain graphene_witness graphene_egenesis_none fc crosschain_privatekey_management 
+  target_link_libraries( embed_genesis graphene_app  graphene_chain graphene_witness graphene_egenesis_none fc crosschain_privatekey_management 
     "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a" 
     "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a" 
     $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a  

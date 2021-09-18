@@ -33,7 +33,11 @@ namespace fc
    //template graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator=(const smart_ref&);
    //template smart_ref<graphene::chain::fee_schedule>::smart_ref();
    //template const graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator*() const;
+   template<> const graphene::chain::fee_schedule& smart_ref<graphene::chain::fee_schedule>::operator*() const{
+      return *impl;
+   }
 	//template smart_ref<graphene::chain::fee_schedule>::smart_ref(const smart_ref&);
+   smart_ref<graphene::chain::fee_schedule> fee_schedule_a;
 }
 
 #define MAX_FEE_STABILIZATION_ITERATION 4
